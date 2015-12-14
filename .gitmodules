@@ -1,0 +1,3 @@
+[submodule "taslogger"]
+	path = taslogger
+	url = https://github.com/HLTAS/taslogger.git
