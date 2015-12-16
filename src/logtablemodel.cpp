@@ -9,7 +9,7 @@
 static const float M_U = 360.0 / 65536;
 
 LogTableModel::LogTableModel(QObject *parent)
-	: QAbstractTableModel(parent), showPrePlayerMove(true)
+	: QAbstractTableModel(parent)
 {
 }
 
@@ -27,6 +27,8 @@ void LogTableModel::populateCommandToPhysicsIndex()
 
 void LogTableModel::openLogFile(const QString &fileName)
 {
+	_logFileName = fileName;
+
 	const QByteArray nameBytes = fileName.toLatin1();
 	FILE *file = fopen(nameBytes.data(), "rb");
 	if (!file) {
@@ -143,7 +145,7 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 
 	switch (column) {
 	case PhysicsFrameTimeHeader:
-		return QColor(Qt::darkGray);
+		return QColor(phyFrame.consolePrintList.empty() ? Qt::darkGray : Qt::white);
 	case CommandFrameTimeHeader:
 		return QColor(Qt::darkGray);
 	case FramebulkIdHeader:
@@ -176,6 +178,10 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 		if (phyFrame.damageList.empty())
 			break;
 		return QColor(Qt::white);
+	case FrameTimeRemainderHeader:
+		if (!cmdFrame)
+			break;
+		return QColor(Qt::darkGray);
 	}
 
 	return QVariant();
@@ -189,6 +195,10 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
 
 	switch (column) {
+	case PhysicsFrameTimeHeader:
+		if (phyFrame.consolePrintList.empty())
+			break;
+		return QColor(Qt::darkGray);
 	case HorizontalSpeedHeader:
 	case VerticalSpeedHeader:
 		if (!cmdFrame || cmdFrame->collisionList.empty())
@@ -199,9 +209,9 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 			break;
 		return QColor(Qt::green);
 	case DuckStateHeader:
-		if (!cmdFrame || !pmState->duckState)
+		if (!cmdFrame || pmState->duckState == TASLogger::UNDUCKED)
 			break;
-		return QColor(pmState->duckState == 1 ? Qt::gray : Qt::black);
+		return QColor(pmState->duckState == TASLogger::INDUCK ? Qt::gray : Qt::black);
 	case JumpHeader:
 		if (!cmdFrame || !(cmdFrame->buttons & IN_JUMP))
 			break;
@@ -262,6 +272,14 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		if (!cmdFrame || !pmState->waterLevel)
 			break;
 		return QColor(pmState->waterLevel == 1 ? Qt::blue : Qt::darkBlue);
+	case EntityFrictionHeader:
+		if (!cmdFrame || cmdFrame->entFriction == 1.0)
+			break;
+		return QColor(Qt::gray);
+	case EntityGravityHeader:
+		if (!cmdFrame || cmdFrame->entGravity == 1.0)
+			break;
+		return QColor(Qt::gray);
 	}
 
 	return QVariant();
@@ -330,6 +348,10 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return cmdFrame->armor;
+	case FrameTimeRemainderHeader:
+		if (!cmdFrame)
+			break;
+		return QString::number(cmdFrame->frameTimeRemainder, 'e', 3);
 	case PositionZHeader:
 		if (!cmdFrame)
 			break;

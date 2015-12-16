@@ -11,8 +11,9 @@ MainWindow::MainWindow()
 void MainWindow::setupMenuBar()
 {
 	QMenu *fileMenu = menuBar()->addMenu("&File");
-	openAct = fileMenu->addAction("&Open...", this, SLOT(openLogFile()));
-	openAct->setShortcuts(QKeySequence::Open);
+	openAct = fileMenu->addAction("&Open...", this, SLOT(openLogFile()), QKeySequence::Open);
+
+	reloadAct = fileMenu->addAction("&Reload", this, SLOT(reloadLogFile()), QKeySequence::Refresh);
 
 	QMenu *viewMenu = menuBar()->addMenu("&View");
 	anglemodUnitAct = viewMenu->addAction("Viewangles in Anglemod Unit",
@@ -34,7 +35,23 @@ void MainWindow::setupMenuBar()
 	playerMoveGroup = new QActionGroup(this);
 	playerMoveGroup->addAction(prePlayerMoveAct);
 	playerMoveGroup->addAction(postPlayerMoveAct);
-	prePlayerMoveAct->setChecked(true);
+	postPlayerMoveAct->setChecked(true);
+
+	QMenu *navigateMenu = menuBar()->addMenu("&Navigate");
+	jumpToStartOfLogAct = navigateMenu->addAction("Jump to &Start of Log",
+		this, SLOT(jumpToStartOfLog()), QKeySequence::MoveToStartOfDocument);
+	jumpToEndOfLogAct = navigateMenu->addAction("Jump to &End of Log",
+		this, SLOT(jumpToEndOfLog()), QKeySequence::MoveToEndOfDocument);
+}
+
+void MainWindow::jumpToStartOfLog()
+{
+	logTableView->scrollToTop();
+}
+
+void MainWindow::jumpToEndOfLog()
+{
+	logTableView->scrollToBottom();
 }
 
 void MainWindow::showAnglemodUnit()
@@ -88,10 +105,19 @@ void MainWindow::setupUi()
 	logTableView->resizeColumnToContents(ReloadHeader);
 	logTableView->resizeColumnToContents(OnLadderHeader);
 	logTableView->resizeColumnToContents(WaterLevelHeader);
+	logTableView->resizeColumnToContents(EntityFrictionHeader);
+	logTableView->resizeColumnToContents(EntityGravityHeader);
 	logTableView->setColumnWidth(CommandFrameTimeHeader, 40);
 	logTableView->setColumnWidth(FramebulkIdHeader, 50);
+	logTableView->setColumnWidth(HealthHeader, 50);
+	logTableView->setColumnWidth(ArmorHeader, 50);
 
 	resize(800, 600);
+}
+
+void MainWindow::reloadLogFile()
+{
+	logTableModel->openLogFile(logTableModel->logFileName());
 }
 
 void MainWindow::openLogFile()

@@ -12,17 +12,23 @@ public:
 
 private slots:
 	void openLogFile();
+	void reloadLogFile();
 	void showAnglemodUnit();
 	void showGrid();
 	void showPrePM();
 	void showPostPM();
+	void jumpToStartOfLog();
+	void jumpToEndOfLog();
 
 private:
 	QAction *openAct;
+	QAction *reloadAct;
 	QAction *anglemodUnitAct;
 	QAction *showGridAct;
 	QAction *prePlayerMoveAct;
 	QAction *postPlayerMoveAct;
+	QAction *jumpToStartOfLogAct;
+	QAction *jumpToEndOfLogAct;
 	QActionGroup *playerMoveGroup;
 
 	QTableView *logTableView;

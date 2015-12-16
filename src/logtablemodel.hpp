@@ -39,6 +39,9 @@ enum HorizontalHeaderIndex {
 	ReloadHeader,
 	OnLadderHeader,
 	WaterLevelHeader,
+	FrameTimeRemainderHeader,
+	EntityFrictionHeader,
+	EntityGravityHeader,
 	PositionZHeader,
 	PositionXHeader,
 	PositionYHeader,
@@ -61,12 +64,15 @@ static const QString HorizontalHeaderList[][2] = {
 	{"p", "Pitch"},
 	{"hp", "Health"},
 	{"ap", "Armor"},
-	{"u", "Use key"},
+	{"e", "Use key"},
 	{"1", "Primary attack key"},
 	{"2", "Second attack key"},
 	{"r", "Reload key"},
 	{"l", "Is on ladder?"},
 	{"w", "Water level"},
+	{"rem", "Frametime remainder"},
+	{"ef", "Entity friction"},
+	{"eg", "Entity gravity"},
 	{"posz", "z position"},
 	{"posx", "x position"},
 	{"posy", "y position"},
@@ -81,6 +87,7 @@ public:
 	LogTableModel(QObject *parent = nullptr);
 
 	inline const TASLogger::TASLog &getTASLog() const { return tasLog; }
+	inline const QString logFileName() const { return _logFileName; }
 
 	void openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
@@ -100,6 +107,8 @@ private:
 	bool logLoaded;
 	bool showPrePlayerMove;
 	bool showAnglemodUnit;
+
+	QString _logFileName;
 
 	void signalAllDataChanged();
 
