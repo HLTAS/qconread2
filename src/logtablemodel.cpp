@@ -1,59 +1,405 @@
 #include <cstdio>
-#include <ctime>
 #include <QDebug>
+#include <QFont>
+#include <QColor>
+#include <cmath>
+#include <limits>
 #include "logtablemodel.hpp"
 
+static const float M_U = 360.0 / 65536;
+
 LogTableModel::LogTableModel(QObject *parent)
-	: QAbstractTableModel(parent)
+	: QAbstractTableModel(parent), showPrePlayerMove(true)
 {
+}
+
+void LogTableModel::populateCommandToPhysicsIndex()
+{
+	commandToPhysicsIndex.clear();
+	commandToPhysicsIndex.reserve(tasLog.physicsFrameList.size());
+	for (size_t phy = 0; phy < tasLog.physicsFrameList.size(); phy++) {
+		const auto &f = tasLog.physicsFrameList.at(phy);
+		commandToPhysicsIndex.append(phy);
+		for (size_t j = 1; j < f.commandFrameList.size(); j++)
+			commandToPhysicsIndex.append(phy);
+	}
 }
 
 void LogTableModel::openLogFile(const QString &fileName)
 {
 	const QByteArray nameBytes = fileName.toLatin1();
 	FILE *file = fopen(nameBytes.data(), "rb");
+	if (!file) {
+		// TODO: error reporting
+		return;
+	}
+
 	fseek(file, 0, SEEK_END);
 	size_t fileSize = static_cast<size_t>(ftell(file));
 	fseek(file, 0, SEEK_SET);
 	char *fileData = new char[fileSize];
-	size_t n = fread(fileData, 1, fileSize, file);
+	fread(fileData, 1, fileSize, file);
 	fclose(file);
 
-	rapidjson::ParseResult res = TASLogger::ParseString(fileData, tasLog);
+	const rapidjson::ParseResult res = TASLogger::ParseString(fileData, tasLog);
 	delete[] fileData;
 
+	if (!res) {
+		// TODO: error reporting
+		return;
+	}
+
+	removeRows(0, commandToPhysicsIndex.size());
+
+	populateCommandToPhysicsIndex();
+
 	logLoaded = true;
-	insertRows(0, static_cast<int>(tasLog.physicsFrameList.size()));
+	insertRows(0, commandToPhysicsIndex.size());
 }
 
 bool LogTableModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-	beginInsertRows(parent, row, row + count);
+	beginInsertRows(parent, row, row + count - 1);
 	endInsertRows();
+	return true;
 }
 
-int LogTableModel::rowCount(const QModelIndex &parent) const
+bool LogTableModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+	beginRemoveRows(parent, row, row + count - 1);
+	endRemoveRows();
+	return true;
+}
+
+int LogTableModel::rowCount(const QModelIndex &) const
 {
 	if (logLoaded)
-		return static_cast<int>(tasLog.physicsFrameList.size());
+		return commandToPhysicsIndex.size();
 	else
 		return 0;
 }
 
-int LogTableModel::columnCount(const QModelIndex &parent) const
+int LogTableModel::columnCount(const QModelIndex &) const
 {
-	return 10;
+	return HorizontalHeaderCount;
+}
+
+// Search for the row index corresponding to the lowest command frame within a physics frame.
+// Usually this takes only a few iterations, so it is almost constant time.
+int LogTableModel::searchBaseCommandRow(int phyIndex, int row) const
+{
+	while (row >= 0) {
+		const int ind = commandToPhysicsIndex.at(row);
+		if (ind < phyIndex)
+			return row + 1;
+		--row;
+	}
+	return 0;
+}
+
+void LogTableModel::signalAllDataChanged()
+{
+	const QModelIndex topLeft = createIndex(0, 0);
+	const QModelIndex bottomRight = createIndex(rowCount() - 1, columnCount() - 1);
+	emit dataChanged(topLeft, bottomRight);
+}
+
+void LogTableModel::setShowPlayerMove(bool pre)
+{
+	showPrePlayerMove = pre;
+	signalAllDataChanged();
+}
+
+void LogTableModel::setShowAnglemodUnit(bool enable)
+{
+	showAnglemodUnit = enable;
+	signalAllDataChanged();
+}
+
+void LogTableModel::getAllFrames(int row,
+	TASLogger::ReaderPhysicsFrame &phyFrame,
+	TASLogger::ReaderCommandFrame **cmdFrame,
+	TASLogger::ReaderPlayerState **pmState) const
+{
+	const int ind = commandToPhysicsIndex.at(row);
+	const int baseRow = searchBaseCommandRow(ind, row);
+	const int cmdInd = row - baseRow;
+
+	phyFrame = tasLog.physicsFrameList.at(ind);
+	*cmdFrame = nullptr;
+	*pmState = nullptr;
+	if (!phyFrame.commandFrameList.empty()) {
+		*cmdFrame = &phyFrame.commandFrameList.at(cmdInd);
+		*pmState = &(showPrePlayerMove ? (*cmdFrame)->prePMState : (*cmdFrame)->postPMState);
+	}
+}
+
+QVariant LogTableModel::dataForeground(int row, int column) const
+{
+	TASLogger::ReaderPhysicsFrame phyFrame;
+	TASLogger::ReaderCommandFrame *cmdFrame;
+	TASLogger::ReaderPlayerState *pmState;
+	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+
+	switch (column) {
+	case PhysicsFrameTimeHeader:
+		return QColor(Qt::darkGray);
+	case CommandFrameTimeHeader:
+		return QColor(Qt::darkGray);
+	case FramebulkIdHeader:
+		return QColor(Qt::darkGray);
+	case HorizontalSpeedHeader:
+		if (phyFrame.objectMoveList.empty())
+			break;
+		return QColor(Qt::blue);
+	case VerticalSpeedHeader:
+		if (!cmdFrame || pmState->velocity[2] == 0.0)
+			break;
+		return QColor(pmState->velocity[2] > 0.0 ? Qt::blue : Qt::red);
+	case ForwardMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
+			break;
+		return QColor(Qt::white);
+	case SideMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[1] == 0.0)
+			break;
+		return QColor(Qt::white);
+	case UpMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[2] == 0.0)
+			break;
+		return QColor(Qt::white);
+	case HealthHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return QColor(Qt::white);
+	case ArmorHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return QColor(Qt::white);
+	}
+
+	return QVariant();
+}
+
+QVariant LogTableModel::dataBackground(int row, int column) const
+{
+	TASLogger::ReaderPhysicsFrame phyFrame;
+	TASLogger::ReaderCommandFrame *cmdFrame;
+	TASLogger::ReaderPlayerState *pmState;
+	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+
+	switch (column) {
+	case HorizontalSpeedHeader:
+	case VerticalSpeedHeader:
+		if (!cmdFrame || cmdFrame->collisionList.empty())
+			break;
+		return QColor(255, 233, 186);
+	case OnGroundHeader:
+		if (!cmdFrame || !pmState->onGround)
+			break;
+		return QColor(Qt::green);
+	case DuckStateHeader:
+		if (!cmdFrame || !pmState->duckState)
+			break;
+		return QColor(pmState->duckState == 1 ? Qt::gray : Qt::black);
+	case JumpHeader:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_JUMP))
+			break;
+		return QColor(Qt::cyan);
+	case DuckHeader:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_DUCK))
+			break;
+		return QColor(Qt::magenta);
+	case ForwardMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
+			break;
+		return QColor(cmdFrame->FSU[0] > 0 ? Qt::blue : Qt::red);
+	case SideMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[1] == 0.0)
+			break;
+		return QColor(cmdFrame->FSU[1] > 0 ? Qt::blue : Qt::red);
+	case UpMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[2] == 0.0)
+			break;
+		return QColor(cmdFrame->FSU[2] > 0 ? Qt::blue : Qt::red);
+	case YawHeader:
+		if (!cmdFrame || cmdFrame->punchangles[0] == 0.0)
+			break;
+		return QColor(Qt::yellow);
+	case PitchHeader:
+		if (!cmdFrame || cmdFrame->punchangles[1] == 0.0)
+			break;
+		return QColor(Qt::yellow);
+	case HealthHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return QColor(Qt::red);
+	case ArmorHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return QColor(Qt::red);
+	case UseHeader:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_USE))
+			break;
+		return QColor(Qt::darkYellow);
+	case AttackHeader:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_ATTACK))
+			break;
+		return QColor(Qt::darkYellow);
+	case Attack2Header:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_ATTACK2))
+			break;
+		return QColor(Qt::darkYellow);
+	case ReloadHeader:
+		if (!cmdFrame || !(cmdFrame->buttons & IN_RELOAD))
+			break;
+		return QColor(Qt::darkYellow);
+	case OnLadderHeader:
+		if (!cmdFrame || !pmState->onLadder)
+			break;
+		return QColor(125, 58, 19);
+	case WaterLevelHeader:
+		if (!cmdFrame || !pmState->waterLevel)
+			break;
+		return QColor(pmState->waterLevel == 1 ? Qt::blue : Qt::darkBlue);
+	}
+
+	return QVariant();
+}
+
+QVariant LogTableModel::dataDisplay(int row, int column) const
+{
+	TASLogger::ReaderPhysicsFrame phyFrame;
+	TASLogger::ReaderCommandFrame *cmdFrame;
+	TASLogger::ReaderPlayerState *pmState;
+	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+
+	switch (column) {
+	case PhysicsFrameTimeHeader:
+		return phyFrame.frameTime;
+	case CommandFrameTimeHeader:
+		if (!cmdFrame)
+			break;
+		return cmdFrame->msec;
+	case FramebulkIdHeader:
+		if (!cmdFrame)
+			break;
+		return cmdFrame->framebulkId;
+	case HorizontalSpeedHeader: {
+		if (!cmdFrame)
+			break;
+		float speed = std::hypot(pmState->velocity[0], pmState->velocity[1]);
+		return speed == 0.0 ? QVariant() : speed;
+	}
+	case VerticalSpeedHeader: {
+		if (!cmdFrame)
+			break;
+		return pmState->velocity[2] == 0.0 ? QVariant() : pmState->velocity[2];
+	}
+	case ForwardMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
+			break;
+		return cmdFrame->FSU[0] > 0 ? QStringLiteral("F") : QStringLiteral("B");
+	case SideMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[1] == 0.0)
+			break;
+		return cmdFrame->FSU[1] > 0 ? QStringLiteral("R") : QStringLiteral("L");
+	case UpMoveHeader:
+		if (!cmdFrame || cmdFrame->FSU[2] == 0.0)
+			break;
+		return cmdFrame->FSU[2] > 0 ? QStringLiteral("U") : QStringLiteral("D");
+	case YawHeader:
+		if (!cmdFrame)
+			break;
+		if (showAnglemodUnit)
+			return QString("%1u").arg(cmdFrame->viewangles[0] / M_U);
+		else
+			return cmdFrame->viewangles[0];
+	case PitchHeader:
+		if (!cmdFrame)
+			break;
+		if (showAnglemodUnit)
+			return QString("%1u").arg(cmdFrame->viewangles[1] / M_U);
+		else
+			return cmdFrame->viewangles[1];
+	case HealthHeader:
+		if (!cmdFrame)
+			break;
+		return cmdFrame->health;
+	case ArmorHeader:
+		if (!cmdFrame)
+			break;
+		return cmdFrame->armor;
+	case PositionZHeader:
+		if (!cmdFrame)
+			break;
+		return pmState->position[2];
+	case PositionXHeader:
+		if (!cmdFrame)
+			break;
+		return pmState->position[0];
+	case PositionYHeader:
+		if (!cmdFrame)
+			break;
+		return pmState->position[1];
+	}
+
+	return QVariant();
+}
+
+QVariant LogTableModel::dataFont(int row, int column) const
+{
+	static const QFont boldFont = QFont(QStringLiteral(""), -1, QFont::Bold);
+
+	TASLogger::ReaderPhysicsFrame phyFrame;
+	TASLogger::ReaderCommandFrame *cmdFrame;
+	TASLogger::ReaderPlayerState *pmState;
+	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+
+	switch (column) {
+	case HorizontalSpeedHeader:
+		if (phyFrame.objectMoveList.empty())
+			break;
+		return boldFont;
+	case HealthHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return boldFont;
+	case ArmorHeader:
+		if (phyFrame.damageList.empty())
+			break;
+		return boldFont;
+	}
+
+	return QVariant();
 }
 
 QVariant LogTableModel::data(const QModelIndex &index, int role) const
 {
-	if (role == Qt::DisplayRole) {
-		switch (index.column()) {
-		case 0:
-			return tasLog.physicsFrameList.at(index.row()).frameTime;
-		case 1:
-			return tasLog.physicsFrameList.at(index.row()).clientState;
-		}
-	}
+	if (role == Qt::DisplayRole)
+		return dataDisplay(index.row(), index.column());
+	else if (role == Qt::BackgroundRole)
+		return dataBackground(index.row(), index.column());
+	else if (role == Qt::ForegroundRole)
+		return dataForeground(index.row(), index.column());
+	else if (role == Qt::FontRole)
+		return dataFont(index.row(), index.column());
+
 	return QVariant();
+}
+
+QVariant LogTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+	if (role == Qt::DisplayRole) {
+		if (orientation == Qt::Horizontal)
+			return HorizontalHeaderList[section][0];
+	} else if (role == Qt::TextAlignmentRole) {
+		if (orientation == Qt::Vertical)
+			return Qt::AlignRight;
+	} else if (role == Qt::ToolTipRole) {
+		if (orientation == Qt::Horizontal)
+			return HorizontalHeaderList[section][1];
+	}
+
+	return QAbstractTableModel::headerData(section, orientation, role);
 }
