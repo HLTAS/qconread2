@@ -7,9 +7,9 @@ set(CMAKE_AUTOMOC ON)
 set(COMMON_GCC_FLAGS "-pedantic -O3 -march=native -mtune=native")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_GCC_FLAGS} -Weverything -Wno-c++98-compat -Wno-padded -Wno-switch-enum")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_GCC_FLAGS} -Wall -Wextra")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_GCC_FLAGS} -Wextra")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_GCC_FLAGS} -Wall -Wextra")
 endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
