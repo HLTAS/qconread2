@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QAbstractTableModel>
+#include <QtWidgets>
 #include "taslogger/reader.hpp"
 
 const int IN_ATTACK = 1 << 0;

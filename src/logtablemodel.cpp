@@ -1,7 +1,4 @@
 #include <cstdio>
-#include <QDebug>
-#include <QFont>
-#include <QColor>
 #include <cmath>
 #include <limits>
 #include "logtablemodel.hpp"
