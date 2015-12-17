@@ -1,7 +1,7 @@
-#include <QtWidgets>
 #include "mainwindow.hpp"
 
 MainWindow::MainWindow()
+	: fileInfoDialog(nullptr)
 {
 	setupMenuBar();
 	setupStatusBar();
@@ -14,15 +14,23 @@ void MainWindow::setupMenuBar()
 	openAct = fileMenu->addAction("&Open...", this, SLOT(openLogFile()), QKeySequence::Open);
 
 	reloadAct = fileMenu->addAction("&Reload", this, SLOT(reloadLogFile()), QKeySequence::Refresh);
+	reloadAct->setEnabled(false);
+
+	fileMenu->addSeparator();
+
+	logFileInfoAct = fileMenu->addAction("Log File &Info...", this, SLOT(showLogFileInfo()));
+	logFileInfoAct->setEnabled(false);
 
 	QMenu *viewMenu = menuBar()->addMenu("&View");
 	anglemodUnitAct = viewMenu->addAction("Viewangles in Anglemod Unit",
 		this, SLOT(showAnglemodUnit()), QKeySequence("Ctrl+Shift+P"));
 	anglemodUnitAct->setCheckable(true);
+	anglemodUnitAct->setEnabled(false);
 
 	showGridAct = viewMenu->addAction("Show &grid", this, SLOT(showGrid()), QKeySequence("Ctrl+G"));
 	showGridAct->setCheckable(true);
 	showGridAct->setChecked(true);
+	showGridAct->setEnabled(false);
 
 	viewMenu->addSeparator();
 
@@ -33,6 +41,7 @@ void MainWindow::setupMenuBar()
 		this, SLOT(showPostPM()), QKeySequence("}"));
 	postPlayerMoveAct->setCheckable(true);
 	playerMoveGroup = new QActionGroup(this);
+	playerMoveGroup->setEnabled(false);
 	playerMoveGroup->addAction(prePlayerMoveAct);
 	playerMoveGroup->addAction(postPlayerMoveAct);
 	postPlayerMoveAct->setChecked(true);
@@ -40,8 +49,23 @@ void MainWindow::setupMenuBar()
 	QMenu *navigateMenu = menuBar()->addMenu("&Navigate");
 	jumpToStartOfLogAct = navigateMenu->addAction("Jump to &Start of Log",
 		this, SLOT(jumpToStartOfLog()), QKeySequence::MoveToStartOfDocument);
+	jumpToStartOfLogAct->setEnabled(false);
 	jumpToEndOfLogAct = navigateMenu->addAction("Jump to &End of Log",
 		this, SLOT(jumpToEndOfLog()), QKeySequence::MoveToEndOfDocument);
+	jumpToEndOfLogAct->setEnabled(false);
+}
+
+void MainWindow::showLogFileInfo()
+{
+	if (!fileInfoDialog) {
+		fileInfoDialog = new FileInfoDialog(this, logTableModel);
+		connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+			fileInfoDialog, SLOT(updateFileInfo(bool)));
+	}
+	fileInfoDialog->updateFileInfo(true);
+	fileInfoDialog->show();
+	fileInfoDialog->raise();
+	fileInfoDialog->activateWindow();
 }
 
 void MainWindow::jumpToStartOfLog()
@@ -91,6 +115,21 @@ void MainWindow::setupUi()
 	setCentralWidget(logTableView);
 
 	logTableModel = new LogTableModel(logTableView);
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		reloadAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		playerMoveGroup, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		anglemodUnitAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		showGridAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		jumpToStartOfLogAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		jumpToEndOfLogAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		logFileInfoAct, SLOT(setEnabled(bool)));
+
 	logTableView->setModel(logTableModel);
 	logTableView->resizeColumnToContents(OnGroundHeader);
 	logTableView->resizeColumnToContents(DuckStateHeader);

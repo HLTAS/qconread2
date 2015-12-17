@@ -85,11 +85,16 @@ static const int HorizontalHeaderCount =
 
 class LogTableModel : public QAbstractTableModel
 {
+	Q_OBJECT
+
 public:
 	LogTableModel(QObject *parent = nullptr);
 
 	inline const TASLogger::TASLog &getTASLog() const { return tasLog; }
-	inline const QString logFileName() const { return _logFileName; }
+	inline QString logFileName() const { return _logFileName; }
+	inline QString toolVersion() const { return QString::fromStdString(tasLog.toolVersion); }
+	inline int buildNumber() const { return tasLog.buildNumber; }
+	inline QString gameMod() const { return QString::fromStdString(tasLog.gameMod); }
 
 	void openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
@@ -103,6 +108,9 @@ public:
 
 	void setShowPlayerMove(bool pre);
 	void setShowAnglemodUnit(bool enable);
+
+signals:
+	void logFileLoaded(bool loaded);
 
 private:
 	TASLogger::TASLog tasLog;

@@ -24,6 +24,7 @@ include_directories(
 )
 
 add_executable(qconread2
+	src/fileinfodialog.cpp
 	src/logtablemodel.cpp
 	src/main.cpp
 	src/mainwindow.cpp

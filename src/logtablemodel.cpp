@@ -50,6 +50,8 @@ void LogTableModel::openLogFile(const QString &fileName)
 
 	logLoaded = true;
 	insertRows(0, commandToPhysicsIndex.size());
+
+	emit logFileLoaded(true);
 }
 
 bool LogTableModel::insertRows(int row, int count, const QModelIndex &parent)
