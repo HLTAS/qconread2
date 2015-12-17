@@ -23,7 +23,7 @@ void MainWindow::setupMenuBar()
 
 	QMenu *viewMenu = menuBar()->addMenu("&View");
 	anglemodUnitAct = viewMenu->addAction("Viewangles in Anglemod Unit",
-		this, SLOT(showAnglemodUnit()), QKeySequence("Ctrl+Shift+P"));
+		this, SLOT(showAnglemodUnit()), QKeySequence("Ctrl+Shift+A"));
 	anglemodUnitAct->setCheckable(true);
 	anglemodUnitAct->setEnabled(false);
 
