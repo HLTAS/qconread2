@@ -171,6 +171,11 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 		if (phyFrame.damageList.empty())
 			break;
 		return QColor(Qt::white);
+	case ClientStateHeader:
+		if (phyFrame.paused)
+			return QColor(Qt::white);
+		else
+			return QColor(phyFrame.clientState == 5 ? Qt::darkGray : Qt::red);
 	case FrameTimeRemainderHeader:
 		if (!cmdFrame)
 			break;
@@ -261,6 +266,10 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		if (!cmdFrame || !pmState->onLadder)
 			break;
 		return QColor(125, 58, 19);
+	case ClientStateHeader:
+		if (!phyFrame.paused)
+			break;
+		return QColor(Qt::darkCyan);
 	case WaterLevelHeader:
 		if (!cmdFrame || !pmState->waterLevel)
 			break;
@@ -340,6 +349,8 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return cmdFrame->armor;
+	case ClientStateHeader:
+		return phyFrame.clientState;
 	case FrameTimeRemainderHeader:
 		if (!cmdFrame)
 			break;
@@ -381,6 +392,10 @@ QVariant LogTableModel::dataFont(int row, int column) const
 		return boldFont;
 	case ArmorHeader:
 		if (phyFrame.damageList.empty())
+			break;
+		return boldFont;
+	case ClientStateHeader:
+		if (phyFrame.clientState == 5)
 			break;
 		return boldFont;
 	}

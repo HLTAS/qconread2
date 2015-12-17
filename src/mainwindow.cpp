@@ -105,6 +105,7 @@ void MainWindow::setupUi()
 	logTableView->resizeColumnToContents(ReloadHeader);
 	logTableView->resizeColumnToContents(OnLadderHeader);
 	logTableView->resizeColumnToContents(WaterLevelHeader);
+	logTableView->resizeColumnToContents(ClientStateHeader);
 	logTableView->resizeColumnToContents(EntityFrictionHeader);
 	logTableView->resizeColumnToContents(EntityGravityHeader);
 	logTableView->setColumnWidth(CommandFrameTimeHeader, 40);
