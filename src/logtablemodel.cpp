@@ -309,11 +309,10 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		float speed = std::hypot(pmState->velocity[0], pmState->velocity[1]);
 		return speed == 0.0 ? QVariant() : speed;
 	}
-	case VerticalSpeedHeader: {
+	case VerticalSpeedHeader:
 		if (!cmdFrame)
 			break;
 		return pmState->velocity[2] == 0.0 ? QVariant() : pmState->velocity[2];
-	}
 	case ForwardMoveHeader:
 		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
 			break;
