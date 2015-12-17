@@ -36,15 +36,8 @@ void LogTableModel::openLogFile(const QString &fileName)
 		return;
 	}
 
-	fseek(file, 0, SEEK_END);
-	size_t fileSize = static_cast<size_t>(ftell(file));
-	fseek(file, 0, SEEK_SET);
-	char *fileData = new char[fileSize];
-	fread(fileData, 1, fileSize, file);
+	const rapidjson::ParseResult res = TASLogger::ParseFile(file, tasLog);
 	fclose(file);
-
-	const rapidjson::ParseResult res = TASLogger::ParseString(fileData, tasLog);
-	delete[] fileData;
 
 	if (!res) {
 		// TODO: error reporting
