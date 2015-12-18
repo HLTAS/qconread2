@@ -14,9 +14,9 @@ LogTableModel::LogTableModel(QObject *parent)
 void LogTableModel::populateCommandToPhysicsIndex()
 {
 	commandToPhysicsIndex.clear();
-	commandToPhysicsIndex.reserve(tasLog.physicsFrameList.size());
-	for (size_t phy = 0; phy < tasLog.physicsFrameList.size(); phy++) {
-		const auto &f = tasLog.physicsFrameList.at(phy);
+	commandToPhysicsIndex.reserve(_tasLog.physicsFrameList.size());
+	for (size_t phy = 0; phy < _tasLog.physicsFrameList.size(); phy++) {
+		const auto &f = _tasLog.physicsFrameList.at(phy);
 		commandToPhysicsIndex.append(phy);
 		for (size_t j = 1; j < f.commandFrameList.size(); j++)
 			commandToPhysicsIndex.append(phy);
@@ -34,7 +34,7 @@ void LogTableModel::openLogFile(const QString &fileName)
 		return;
 	}
 
-	const rapidjson::ParseResult res = TASLogger::ParseFile(file, tasLog);
+	const rapidjson::ParseResult res = TASLogger::ParseFile(file, _tasLog);
 	fclose(file);
 
 	if (!res) {
@@ -126,7 +126,7 @@ void LogTableModel::getFrameData(int row,
 	const int baseRow = searchBaseCommandRow(ind, row);
 	const int cmdInd = row - baseRow;
 
-	phyFrame = tasLog.physicsFrameList.at(ind);
+	phyFrame = _tasLog.physicsFrameList.at(ind);
 	*cmdFrame = nullptr;
 	*pmState = nullptr;
 	if (!phyFrame.commandFrameList.empty()) {

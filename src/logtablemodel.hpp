@@ -94,11 +94,11 @@ class LogTableModel : public QAbstractTableModel
 public:
 	LogTableModel(QObject *parent = nullptr);
 
-	inline const TASLogger::TASLog &getTASLog() const { return tasLog; }
+	inline const TASLogger::TASLog &getTASLog() const { return _tasLog; }
 	inline QString logFileName() const { return _logFileName; }
-	inline QString toolVersion() const { return QString::fromStdString(tasLog.toolVersion); }
-	inline int buildNumber() const { return tasLog.buildNumber; }
-	inline QString gameMod() const { return QString::fromStdString(tasLog.gameMod); }
+	inline QString toolVersion() const { return QString::fromStdString(_tasLog.toolVersion); }
+	inline int buildNumber() const { return _tasLog.buildNumber; }
+	inline QString gameMod() const { return QString::fromStdString(_tasLog.gameMod); }
 
 	void openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
@@ -123,11 +123,13 @@ public:
 	void setShowFSUValues(bool enable);
 	inline bool showFSUValues() const { return _showFSUValues; }
 
+	inline TASLogger::TASLog tasLog() const { return _tasLog; }
+
 signals:
 	void logFileLoaded(bool loaded);
 
 private:
-	TASLogger::TASLog tasLog;
+	TASLogger::TASLog _tasLog;
 	QVector<int> commandToPhysicsIndex;
 	bool logLoaded = false;
 	bool showPrePlayerMove = false;
