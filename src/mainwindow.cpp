@@ -98,6 +98,8 @@ void MainWindow::jumpToEndOfLog()
 
 void MainWindow::inspectCurrentRow()
 {
+	if (!frameInspectorWindow)
+		return;
 	const QModelIndex &currentIndex = logTableView->currentIndex();
 	if (currentIndex.isValid())
 		frameInspectorWindow->inspectFrame(currentIndex.row());
