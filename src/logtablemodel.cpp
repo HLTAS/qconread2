@@ -4,6 +4,7 @@
 #include "logtablemodel.hpp"
 
 static const float M_U = 360.0 / 65536;
+static const QString BaseVelFormat = "*%1";
 
 LogTableModel::LogTableModel(QObject *parent)
 	: QAbstractTableModel(parent)
@@ -306,22 +307,32 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return cmdFrame->framebulkId;
-	case HorizontalSpeedHeader:
+	case HorizontalSpeedHeader: {
 		if (!cmdFrame)
 			break;
+		const bool hbasevelExist = pmState->baseVelocity[0] != 0.0
+			|| pmState->baseVelocity[1] != 0.0;
 		if (pmState->velocity[0] == 0.0 && pmState->velocity[1] == 0.0
+			&& !hbasevelExist
 			&& phyFrame.objectMoveList.empty())
 			return QVariant();
+		const float hspeed = std::hypot(pmState->velocity[0], pmState->velocity[1]);
+		if (hbasevelExist)
+			return BaseVelFormat.arg(hspeed);
 		else
-			return std::hypot(pmState->velocity[0], pmState->velocity[1]);
+			return hspeed;
+	}
 	case VelocityAngleHeader:
 		if (!cmdFrame || (pmState->velocity[0] == 0.0 && pmState->velocity[1] == 0.0))
 			break;
 		return std::atan2(pmState->velocity[1], pmState->velocity[0]) * 180 / M_PI;
 	case VerticalSpeedHeader:
-		if (!cmdFrame)
+		if (!cmdFrame || (pmState->velocity[2] == 0.0 && pmState->baseVelocity[2] == 0.0))
 			break;
-		return pmState->velocity[2] == 0.0 ? QVariant() : pmState->velocity[2];
+		if (pmState->baseVelocity[2] != 0.0)
+			return BaseVelFormat.arg(pmState->velocity[2]);
+		else
+			return pmState->velocity[2];
 	case ForwardMoveHeader:
 		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
 			break;
