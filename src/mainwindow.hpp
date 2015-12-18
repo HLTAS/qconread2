@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QtWidgets>
+#include "logtableview.hpp"
 #include "logtablemodel.hpp"
 #include "fileinfodialog.hpp"
+#include "frameinspectorwindow.hpp"
 
 class MainWindow : public QMainWindow
 {
@@ -21,6 +23,9 @@ private slots:
 	void showPostPM();
 	void jumpToStartOfLog();
 	void jumpToEndOfLog();
+	void showInspector();
+
+	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 
 private:
 	QAction *openAct;
@@ -30,16 +35,20 @@ private:
 	QAction *showGridAct;
 	QAction *prePlayerMoveAct;
 	QAction *postPlayerMoveAct;
+	QActionGroup *playerMoveGroup;
 	QAction *jumpToStartOfLogAct;
 	QAction *jumpToEndOfLogAct;
-	QActionGroup *playerMoveGroup;
+	QAction *showInspectorAct;
 
-	FileInfoDialog *fileInfoDialog;
+	FileInfoDialog *fileInfoDialog = nullptr;
+	FrameInspectorWindow *frameInspectorWindow = nullptr;
 
-	QTableView *logTableView;
+	LogTableView *logTableView;
 	LogTableModel *logTableModel;
 
 	void setupMenuBar();
 	void setupStatusBar();
 	void setupUi();
+
+	void inspectCurrentRow();
 };

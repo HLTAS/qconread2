@@ -106,11 +106,11 @@ void LogTableModel::setShowPlayerMove(bool pre)
 
 void LogTableModel::setShowAnglemodUnit(bool enable)
 {
-	showAnglemodUnit = enable;
+	_showAnglemodUnit = enable;
 	signalAllDataChanged();
 }
 
-void LogTableModel::getAllFrames(int row,
+void LogTableModel::getFrameData(int row,
 	TASLogger::ReaderPhysicsFrame &phyFrame,
 	TASLogger::ReaderCommandFrame **cmdFrame,
 	TASLogger::ReaderPlayerState **pmState) const
@@ -133,7 +133,7 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
-	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+	getFrameData(row, phyFrame, &cmdFrame, &pmState);
 
 	switch (column) {
 	case PhysicsFrameTimeHeader:
@@ -143,6 +143,7 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 	case FramebulkIdHeader:
 		return QColor(Qt::darkGray);
 	case HorizontalSpeedHeader:
+	case VelocityAngleHeader:
 		if (phyFrame.objectMoveList.empty())
 			break;
 		return QColor(Qt::blue);
@@ -189,7 +190,7 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
-	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+	getFrameData(row, phyFrame, &cmdFrame, &pmState);
 
 	switch (column) {
 	case PhysicsFrameTimeHeader:
@@ -197,6 +198,7 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 			break;
 		return QColor(Qt::darkGray);
 	case HorizontalSpeedHeader:
+	case VelocityAngleHeader:
 	case VerticalSpeedHeader:
 		if (!cmdFrame || cmdFrame->collisionList.empty())
 			break;
@@ -291,7 +293,7 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
-	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+	getFrameData(row, phyFrame, &cmdFrame, &pmState);
 
 	switch (column) {
 	case PhysicsFrameTimeHeader:
@@ -309,6 +311,11 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 			break;
 		float speed = std::hypot(pmState->velocity[0], pmState->velocity[1]);
 		return speed == 0.0 ? QVariant() : speed;
+	}
+	case VelocityAngleHeader: {
+		if (!cmdFrame || (pmState->velocity[0] == 0.0 && pmState->velocity[1] == 0.0))
+			break;
+		return std::atan2(pmState->velocity[1], pmState->velocity[0]) * 180 / M_PI;
 	}
 	case VerticalSpeedHeader:
 		if (!cmdFrame)
@@ -329,14 +336,14 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 	case YawHeader:
 		if (!cmdFrame)
 			break;
-		if (showAnglemodUnit)
+		if (_showAnglemodUnit)
 			return QString("%1u").arg(cmdFrame->viewangles[0] / M_U);
 		else
 			return cmdFrame->viewangles[0];
 	case PitchHeader:
 		if (!cmdFrame)
 			break;
-		if (showAnglemodUnit)
+		if (_showAnglemodUnit)
 			return QString("%1u").arg(cmdFrame->viewangles[1] / M_U);
 		else
 			return cmdFrame->viewangles[1];
@@ -373,15 +380,16 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 
 QVariant LogTableModel::dataFont(int row, int column) const
 {
-	static const QFont boldFont = QFont(QStringLiteral(""), -1, QFont::Bold);
+	static const QFont boldFont = QFont(QString(), -1, QFont::Bold);
 
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
-	getAllFrames(row, phyFrame, &cmdFrame, &pmState);
+	getFrameData(row, phyFrame, &cmdFrame, &pmState);
 
 	switch (column) {
 	case HorizontalSpeedHeader:
+	case VelocityAngleHeader:
 		if (phyFrame.objectMoveList.empty())
 			break;
 		return boldFont;

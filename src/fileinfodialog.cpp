@@ -12,23 +12,23 @@ void FileInfoDialog::setupUi()
 	gl->setSizeConstraint(QLayout::SetFixedSize);
 	setLayout(gl);
 
-	QLabel *lblToolVersion = new QLabel("Tool version:", this);
-	gl->addWidget(lblToolVersion, 0, 0, Qt::AlignRight);
-	txtToolVersion = new QLabel(this);
-	txtToolVersion->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	gl->addWidget(txtToolVersion, 0, 1);
+	QLabel *toolVersionLabel = new QLabel("Tool version:", this);
+	gl->addWidget(toolVersionLabel, 0, 0, Qt::AlignRight);
+	toolVersionText = new QLabel(this);
+	toolVersionText->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	gl->addWidget(toolVersionText, 0, 1);
 
-	QLabel *lblBuildNumber = new QLabel("Game build:", this);
-	gl->addWidget(lblBuildNumber, 1, 0, Qt::AlignRight);
-	txtBuildNumber = new QLabel(this);
-	txtBuildNumber->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	gl->addWidget(txtBuildNumber, 1, 1);
+	QLabel *buildNumberLabel = new QLabel("Game build:", this);
+	gl->addWidget(buildNumberLabel, 1, 0, Qt::AlignRight);
+	buildNumberText = new QLabel(this);
+	buildNumberText->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	gl->addWidget(buildNumberText, 1, 1);
 
-	QLabel *lblGameMod = new QLabel("Game mod:", this);
-	gl->addWidget(lblGameMod, 2, 0, Qt::AlignRight);
-	txtGameMod = new QLabel(this);
-	txtGameMod->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	gl->addWidget(txtGameMod, 2, 1);
+	QLabel *gameModLabel = new QLabel("Game mod:", this);
+	gl->addWidget(gameModLabel, 2, 0, Qt::AlignRight);
+	gameModText = new QLabel(this);
+	gameModText->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	gl->addWidget(gameModText, 2, 1);
 
 	setWindowTitle("Log File Info");
 }
@@ -36,12 +36,12 @@ void FileInfoDialog::setupUi()
 void FileInfoDialog::updateFileInfo(bool validFile)
 {
 	if (validFile) {
-		txtToolVersion->setText(logTableModel->toolVersion());
-		txtBuildNumber->setText(QString::number(logTableModel->buildNumber()));
-		txtGameMod->setText(logTableModel->gameMod());
+		toolVersionText->setText(logTableModel->toolVersion());
+		buildNumberText->setText(QString::number(logTableModel->buildNumber()));
+		gameModText->setText(logTableModel->gameMod());
 	} else {
-		txtToolVersion->setText(QStringLiteral(""));
-		txtBuildNumber->setText(QStringLiteral(""));
-		txtGameMod->setText(QStringLiteral(""));
+		toolVersionText->setText(QString());
+		buildNumberText->setText(QString());
+		gameModText->setText(QString());
 	}
 }

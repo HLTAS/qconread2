@@ -16,9 +16,9 @@ public slots:
 private:
 	const LogTableModel *logTableModel;
 
-	QLabel *txtToolVersion;
-	QLabel *txtBuildNumber;
-	QLabel *txtGameMod;
+	QLabel *toolVersionText;
+	QLabel *buildNumberText;
+	QLabel *gameModText;
 
 	void setupUi();
 };

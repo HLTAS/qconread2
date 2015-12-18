@@ -21,6 +21,7 @@ enum HorizontalHeaderIndex {
 	CommandFrameTimeHeader,
 	FramebulkIdHeader,
 	HorizontalSpeedHeader,
+	VelocityAngleHeader,
 	VerticalSpeedHeader,
 	OnGroundHeader,
 	DuckStateHeader,
@@ -53,6 +54,7 @@ static const QString HorizontalHeaderList[][2] = {
 	{"ms", "Command frametime"},
 	{"bid", "Framebulk ID"},
 	{"hspd", "Horizontal speed"},
+	{"vyaw", "Velocity yaw"},
 	{"vspd", "Vertical speed"},
 	{"g", "Is on ground?"},
 	{"k", "Duck state"},
@@ -96,9 +98,15 @@ public:
 	inline int buildNumber() const { return tasLog.buildNumber; }
 	inline QString gameMod() const { return QString::fromStdString(tasLog.gameMod); }
 
+
 	void openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 	bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
+	void getFrameData(int row,
+		TASLogger::ReaderPhysicsFrame &phyFrame,
+		TASLogger::ReaderCommandFrame **cmdFrame,
+		TASLogger::ReaderPlayerState **pmState) const;
 
 	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 	int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -107,7 +115,9 @@ public:
 		int role = Qt::DisplayRole) const override;
 
 	void setShowPlayerMove(bool pre);
+
 	void setShowAnglemodUnit(bool enable);
+	inline bool showAnglemodUnit() const { return _showAnglemodUnit; }
 
 signals:
 	void logFileLoaded(bool loaded);
@@ -117,17 +127,13 @@ private:
 	QVector<int> commandToPhysicsIndex;
 	bool logLoaded = false;
 	bool showPrePlayerMove = false;
-	bool showAnglemodUnit = false;
+	bool _showAnglemodUnit = false;
 
 	QString _logFileName;
 
 	void signalAllDataChanged();
 
 	int searchBaseCommandRow(int phyIndex, int row) const;
-	void getAllFrames(int row,
-		TASLogger::ReaderPhysicsFrame &phyFrame,
-		TASLogger::ReaderCommandFrame **cmdFrame,
-		TASLogger::ReaderPlayerState **pmState) const;
 
 	void populateCommandToPhysicsIndex();
 	QVariant dataForeground(int row, int column) const;

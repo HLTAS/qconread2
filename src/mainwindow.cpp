@@ -1,7 +1,6 @@
 #include "mainwindow.hpp"
 
 MainWindow::MainWindow()
-	: fileInfoDialog(nullptr)
 {
 	setupMenuBar();
 	setupStatusBar();
@@ -53,6 +52,25 @@ void MainWindow::setupMenuBar()
 	jumpToEndOfLogAct = navigateMenu->addAction("Jump to &End of Log",
 		this, SLOT(jumpToEndOfLog()), QKeySequence::MoveToEndOfDocument);
 	jumpToEndOfLogAct->setEnabled(false);
+
+	QMenu *toolsMenu = menuBar()->addMenu("&Tools");
+	showInspectorAct = toolsMenu->addAction("Frame &Inspector",
+		this, SLOT(showInspector()), QKeySequence("F"));
+	showInspectorAct->setCheckable(true);
+}
+
+void MainWindow::showInspector()
+{
+	if (!frameInspectorWindow) {
+		frameInspectorWindow = new FrameInspectorWindow(this, logTableModel);
+		connect(frameInspectorWindow, SIGNAL(aboutToClose()), showInspectorAct, SLOT(toggle()));
+	}
+
+	if (showInspectorAct->isChecked()) {
+		frameInspectorWindow->show();
+		inspectCurrentRow();
+	} else
+		frameInspectorWindow->hide();
 }
 
 void MainWindow::showLogFileInfo()
@@ -78,9 +96,17 @@ void MainWindow::jumpToEndOfLog()
 	logTableView->scrollToBottom();
 }
 
+void MainWindow::inspectCurrentRow()
+{
+	const QModelIndex &currentIndex = logTableView->currentIndex();
+	if (currentIndex.isValid())
+		frameInspectorWindow->inspectFrame(currentIndex.row());
+}
+
 void MainWindow::showAnglemodUnit()
 {
 	logTableModel->setShowAnglemodUnit(anglemodUnitAct->isChecked());
+	inspectCurrentRow();
 }
 
 void MainWindow::showGrid()
@@ -91,11 +117,13 @@ void MainWindow::showGrid()
 void MainWindow::showPrePM()
 {
 	logTableModel->setShowPlayerMove(true);
+	inspectCurrentRow();
 }
 
 void MainWindow::showPostPM()
 {
 	logTableModel->setShowPlayerMove(false);
+	inspectCurrentRow();
 }
 
 void MainWindow::setupStatusBar()
@@ -103,15 +131,27 @@ void MainWindow::setupStatusBar()
 	statusBar();
 }
 
+void MainWindow::currentChanged(const QModelIndex &current, const QModelIndex &)
+{
+	if (!frameInspectorWindow)
+		return;
+	frameInspectorWindow->inspectFrame(current.row());
+}
+
 void MainWindow::setupUi()
 {
-	logTableView = new QTableView(this);
+	resize(800, 600);
+	setWindowTitle("qconread2");
+
+	logTableView = new LogTableView(this);
 	logTableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	logTableView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	logTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	logTableView->horizontalHeader()->setSectionsMovable(true);
 	logTableView->horizontalHeader()->setDefaultSectionSize(90);
 	logTableView->verticalHeader()->setDefaultSectionSize(25);
+	connect(logTableView, SIGNAL(currentChanged_(const QModelIndex &, const QModelIndex &)),
+		this, SLOT(currentChanged(const QModelIndex &, const QModelIndex &)));
 	setCentralWidget(logTableView);
 
 	logTableModel = new LogTableModel(logTableView);
@@ -151,8 +191,6 @@ void MainWindow::setupUi()
 	logTableView->setColumnWidth(FramebulkIdHeader, 50);
 	logTableView->setColumnWidth(HealthHeader, 50);
 	logTableView->setColumnWidth(ArmorHeader, 50);
-
-	resize(800, 600);
 }
 
 void MainWindow::reloadLogFile()
