@@ -306,17 +306,18 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return cmdFrame->framebulkId;
-	case HorizontalSpeedHeader: {
+	case HorizontalSpeedHeader:
 		if (!cmdFrame)
 			break;
-		float speed = std::hypot(pmState->velocity[0], pmState->velocity[1]);
-		return speed == 0.0 ? QVariant() : speed;
-	}
-	case VelocityAngleHeader: {
+		if (pmState->velocity[0] == 0.0 && pmState->velocity[1] == 0.0
+			&& phyFrame.objectMoveList.empty())
+			return QVariant();
+		else
+			return std::hypot(pmState->velocity[0], pmState->velocity[1]);
+	case VelocityAngleHeader:
 		if (!cmdFrame || (pmState->velocity[0] == 0.0 && pmState->velocity[1] == 0.0))
 			break;
 		return std::atan2(pmState->velocity[1], pmState->velocity[0]) * 180 / M_PI;
-	}
 	case VerticalSpeedHeader:
 		if (!cmdFrame)
 			break;
