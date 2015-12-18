@@ -26,7 +26,11 @@ void MainWindow::setupMenuBar()
 	anglemodUnitAct->setCheckable(true);
 	anglemodUnitAct->setEnabled(false);
 
-	showGridAct = viewMenu->addAction("Show &grid", this, SLOT(showGrid()), QKeySequence("Ctrl+G"));
+	showFSUValuesAct = viewMenu->addAction("Show FSU &Values", this, SLOT(showFSUValues()));
+	showFSUValuesAct->setCheckable(true);
+	showFSUValuesAct->setEnabled(false);
+
+	showGridAct = viewMenu->addAction("Show &Grid", this, SLOT(showGrid()), QKeySequence("Ctrl+G"));
 	showGridAct->setCheckable(true);
 	showGridAct->setChecked(true);
 	showGridAct->setEnabled(false);
@@ -57,6 +61,20 @@ void MainWindow::setupMenuBar()
 	showInspectorAct = toolsMenu->addAction("Frame &Inspector",
 		this, SLOT(showInspector()), QKeySequence("F"));
 	showInspectorAct->setCheckable(true);
+}
+
+void MainWindow::showFSUValues()
+{
+	logTableModel->setShowFSUValues(showFSUValuesAct->isChecked());
+	if (showFSUValuesAct->isChecked()) {
+		QHeaderView *header = logTableView->horizontalHeader();
+		if (logTableView->columnWidth(ForwardMoveHeader) < 30)
+			header->resizeSection(ForwardMoveHeader, 50);
+		if (logTableView->columnWidth(SideMoveHeader) < 30)
+			header->resizeSection(SideMoveHeader, 50);
+		if (logTableView->columnWidth(UpMoveHeader) < 30)
+			header->resizeSection(UpMoveHeader, 50);
+	}
 }
 
 void MainWindow::showInspector()
@@ -163,6 +181,8 @@ void MainWindow::setupUi()
 		playerMoveGroup, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
 		anglemodUnitAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		showFSUValuesAct, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
 		showGridAct, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),

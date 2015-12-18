@@ -18,6 +18,7 @@ private slots:
 	void reloadLogFile();
 	void showLogFileInfo();
 	void showAnglemodUnit();
+	void showFSUValues();
 	void showGrid();
 	void showPrePM();
 	void showPostPM();
@@ -32,6 +33,7 @@ private:
 	QAction *reloadAct;
 	QAction *logFileInfoAct;
 	QAction *anglemodUnitAct;
+	QAction *showFSUValuesAct;
 	QAction *showGridAct;
 	QAction *prePlayerMoveAct;
 	QAction *postPlayerMoveAct;

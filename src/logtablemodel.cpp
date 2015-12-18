@@ -111,6 +111,12 @@ void LogTableModel::setShowAnglemodUnit(bool enable)
 	signalAllDataChanged();
 }
 
+void LogTableModel::setShowFSUValues(bool enable)
+{
+	_showFSUValues = enable;
+	signalAllDataChanged();
+}
+
 void LogTableModel::getFrameData(int row,
 	TASLogger::ReaderPhysicsFrame &phyFrame,
 	TASLogger::ReaderCommandFrame **cmdFrame,
@@ -338,15 +344,24 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 	case ForwardMoveHeader:
 		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
 			break;
-		return cmdFrame->FSU[0] > 0 ? QStringLiteral("F") : QStringLiteral("B");
+		if (_showFSUValues)
+			return cmdFrame->FSU[0];
+		else
+			return cmdFrame->FSU[0] > 0 ? QStringLiteral("F") : QStringLiteral("B");
 	case SideMoveHeader:
 		if (!cmdFrame || cmdFrame->FSU[1] == 0.0)
 			break;
-		return cmdFrame->FSU[1] > 0 ? QStringLiteral("R") : QStringLiteral("L");
+		if (_showFSUValues)
+			return cmdFrame->FSU[1];
+		else
+			return cmdFrame->FSU[1] > 0 ? QStringLiteral("R") : QStringLiteral("L");
 	case UpMoveHeader:
 		if (!cmdFrame || cmdFrame->FSU[2] == 0.0)
 			break;
-		return cmdFrame->FSU[2] > 0 ? QStringLiteral("U") : QStringLiteral("D");
+		if (_showFSUValues)
+			return cmdFrame->FSU[2];
+		else
+			return cmdFrame->FSU[2] > 0 ? QStringLiteral("U") : QStringLiteral("D");
 	case YawHeader:
 		if (!cmdFrame)
 			break;
@@ -428,16 +443,32 @@ QVariant LogTableModel::dataFont(int row, int column) const
 	return QVariant();
 }
 
+QVariant LogTableModel::dataAlignment(int, int column) const
+{
+	switch (column) {
+	case ForwardMoveHeader:
+	case SideMoveHeader:
+	case UpMoveHeader:
+		return Qt::AlignCenter;
+	}
+
+	return QVariant();
+}
+
 QVariant LogTableModel::data(const QModelIndex &index, int role) const
 {
-	if (role == Qt::DisplayRole)
+	switch (role) {
+	case Qt::DisplayRole:
 		return dataDisplay(index.row(), index.column());
-	else if (role == Qt::BackgroundRole)
+	case Qt::BackgroundRole:
 		return dataBackground(index.row(), index.column());
-	else if (role == Qt::ForegroundRole)
+	case Qt::ForegroundRole:
 		return dataForeground(index.row(), index.column());
-	else if (role == Qt::FontRole)
+	case Qt::FontRole:
 		return dataFont(index.row(), index.column());
+	case Qt::TextAlignmentRole:
+		return dataAlignment(index.row(), index.column());
+	}
 
 	return QVariant();
 }

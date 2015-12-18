@@ -100,7 +100,6 @@ public:
 	inline int buildNumber() const { return tasLog.buildNumber; }
 	inline QString gameMod() const { return QString::fromStdString(tasLog.gameMod); }
 
-
 	void openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 	bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
@@ -121,6 +120,9 @@ public:
 	void setShowAnglemodUnit(bool enable);
 	inline bool showAnglemodUnit() const { return _showAnglemodUnit; }
 
+	void setShowFSUValues(bool enable);
+	inline bool showFSUValues() const { return _showFSUValues; }
+
 signals:
 	void logFileLoaded(bool loaded);
 
@@ -130,6 +132,7 @@ private:
 	bool logLoaded = false;
 	bool showPrePlayerMove = false;
 	bool _showAnglemodUnit = false;
+	bool _showFSUValues = false;
 
 	QString _logFileName;
 
@@ -142,4 +145,5 @@ private:
 	QVariant dataBackground(int row, int column) const;
 	QVariant dataDisplay(int row, int column) const;
 	QVariant dataFont(int row, int column) const;
+	QVariant dataAlignment(int row, int column) const;
 };
