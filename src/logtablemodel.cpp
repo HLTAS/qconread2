@@ -172,6 +172,8 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 		if (phyFrame.damageList.empty())
 			break;
 		return QColor(Qt::white);
+	case SharedSeedHeader:
+		return QColor(Qt::darkGray);
 	case ClientStateHeader:
 		if (phyFrame.paused)
 			return QColor(Qt::white);
@@ -373,6 +375,10 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return QString::number(cmdFrame->frameTimeRemainder, 'e', 3);
+	case SharedSeedHeader:
+		if (!cmdFrame)
+			break;
+		return cmdFrame->sharedSeed;
 	case PositionZHeader:
 		if (!cmdFrame)
 			break;

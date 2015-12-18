@@ -191,6 +191,7 @@ void MainWindow::setupUi()
 	logTableView->resizeColumnToContents(EntityGravityHeader);
 	logTableView->setColumnWidth(CommandFrameTimeHeader, 40);
 	logTableView->setColumnWidth(FramebulkIdHeader, 50);
+	logTableView->setColumnWidth(SharedSeedHeader, 60);
 	logTableView->setColumnWidth(HealthHeader, 50);
 	logTableView->setColumnWidth(ArmorHeader, 50);
 }
