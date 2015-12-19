@@ -196,6 +196,7 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 
 QVariant LogTableModel::dataBackground(int row, int column) const
 {
+	static const QColor CollisionColor(255, 233, 186);
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
@@ -207,11 +208,34 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 			break;
 		return QColor(Qt::darkGray);
 	case HorizontalSpeedHeader:
-	case VelocityAngleHeader:
-	case VerticalSpeedHeader:
+	case VelocityAngleHeader: {
 		if (!cmdFrame || cmdFrame->collisionList.empty())
 			break;
-		return QColor(255, 233, 186);
+		bool horizontalCollision = false;
+		for (const TASLogger::ReaderCollision &col : cmdFrame->collisionList) {
+			if (col.normal[0] != 0.0 || col.normal[1] != 0.0) {
+				horizontalCollision = true;
+				break;
+			}
+		}
+		if (!horizontalCollision)
+			break;
+		return CollisionColor;
+	}
+	case VerticalSpeedHeader: {
+		if (!cmdFrame || cmdFrame->collisionList.empty())
+			break;
+		bool verticalCollision = false;
+		for (const TASLogger::ReaderCollision &col : cmdFrame->collisionList) {
+			if (col.normal[2] != 0.0) {
+				verticalCollision = true;
+				break;
+			}
+		}
+		if (!verticalCollision)
+			break;
+		return CollisionColor;
+	}
 	case OnGroundHeader:
 		if (!cmdFrame || !pmState->onGround)
 			break;
