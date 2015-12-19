@@ -5,6 +5,7 @@
 #include "logtablemodel.hpp"
 #include "fileinfodialog.hpp"
 #include "frameinspectorwindow.hpp"
+#include "playerplotwindow.hpp"
 
 class MainWindow : public QMainWindow
 {
@@ -25,6 +26,7 @@ private slots:
 	void jumpToStartOfLog();
 	void jumpToEndOfLog();
 	void showInspector();
+	void showPlayerPlot();
 
 	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 
@@ -41,9 +43,11 @@ private:
 	QAction *jumpToStartOfLogAct;
 	QAction *jumpToEndOfLogAct;
 	QAction *showInspectorAct;
+	QAction *showPlayerPlotAct;
 
 	FileInfoDialog *fileInfoDialog = nullptr;
 	FrameInspectorWindow *frameInspectorWindow = nullptr;
+	PlayerPlotWindow *playerPlotWindow = nullptr;
 
 	LogTableView *logTableView;
 	LogTableModel *logTableModel;
@@ -53,4 +57,5 @@ private:
 	void setupUi();
 
 	void inspectCurrentRow();
+	void plotCurrentRow();
 };

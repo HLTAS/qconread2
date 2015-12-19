@@ -61,6 +61,10 @@ void MainWindow::setupMenuBar()
 	showInspectorAct = toolsMenu->addAction("Frame &Inspector",
 		this, SLOT(showInspector()), QKeySequence("F"));
 	showInspectorAct->setCheckable(true);
+
+	showPlayerPlotAct = toolsMenu->addAction("&Player Plot",
+		this, SLOT(showPlayerPlot()), QKeySequence("R"));
+	showPlayerPlotAct->setCheckable(true);
 }
 
 void MainWindow::showFSUValues()
@@ -75,6 +79,20 @@ void MainWindow::showFSUValues()
 		if (logTableView->columnWidth(UpMoveHeader) < 30)
 			header->resizeSection(UpMoveHeader, 50);
 	}
+}
+
+void MainWindow::showPlayerPlot()
+{
+	if (!playerPlotWindow) {
+		playerPlotWindow = new PlayerPlotWindow(this, logTableModel);
+		connect(playerPlotWindow, SIGNAL(aboutToClose()), showPlayerPlotAct, SLOT(toggle()));
+	}
+
+	if (showPlayerPlotAct->isChecked()) {
+		playerPlotWindow->show();
+		plotCurrentRow();
+	} else
+		playerPlotWindow->hide();
 }
 
 void MainWindow::showInspector()
@@ -123,6 +141,15 @@ void MainWindow::inspectCurrentRow()
 		frameInspectorWindow->inspectFrame(currentIndex.row());
 }
 
+void MainWindow::plotCurrentRow()
+{
+	if (!playerPlotWindow)
+		return;
+	const QModelIndex &currentIndex = logTableView->currentIndex();
+	if (currentIndex.isValid())
+		playerPlotWindow->plotFrame(currentIndex.row());
+}
+
 void MainWindow::showAnglemodUnit()
 {
 	logTableModel->setShowAnglemodUnit(anglemodUnitAct->isChecked());
@@ -138,12 +165,14 @@ void MainWindow::showPrePM()
 {
 	logTableModel->setShowPlayerMove(true);
 	inspectCurrentRow();
+	plotCurrentRow();
 }
 
 void MainWindow::showPostPM()
 {
 	logTableModel->setShowPlayerMove(false);
 	inspectCurrentRow();
+	plotCurrentRow();
 }
 
 void MainWindow::setupStatusBar()
@@ -153,9 +182,11 @@ void MainWindow::setupStatusBar()
 
 void MainWindow::currentChanged(const QModelIndex &current, const QModelIndex &)
 {
-	if (!frameInspectorWindow)
-		return;
-	frameInspectorWindow->inspectFrame(current.row());
+	if (frameInspectorWindow)
+		frameInspectorWindow->inspectFrame(current.row());
+
+	if (playerPlotWindow)
+		playerPlotWindow->plotFrame(current.row());
 }
 
 void MainWindow::setupUi()

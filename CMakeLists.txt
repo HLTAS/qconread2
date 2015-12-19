@@ -30,6 +30,8 @@ add_executable(qconread2
 	src/logtableview.cpp
 	src/main.cpp
 	src/mainwindow.cpp
+	src/playerplotview.cpp
+	src/playerplotwindow.cpp
 )
 
 target_link_libraries(qconread2 taslogger ${QT_LIBRARIES})
