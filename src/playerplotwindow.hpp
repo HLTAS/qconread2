@@ -27,21 +27,20 @@ private:
 	QPen damagePen;
 	QPen collisionPen;
 
-	PlayerPlotView *planView;
-	PlayerPlotView *frontView;
-	PlayerPlotView *sideView;
+	QPen yawImagPen;
+	QPen velocityImagPen;
+	QPen damageImagPen;
+	QPen collisionImagPen;
 
-	QGraphicsScene *planScene;
-	QGraphicsScene *frontScene;
-	QGraphicsScene *sideScene;
+	PlayerPlotView *plotView;
+	QGraphicsScene *plotScene;
 
-	QList<QGraphicsItem *> planLineList;
-	QList<QGraphicsItem *> frontLineList;
-	QList<QGraphicsItem *> sideLineList;
+	QList<QGraphicsItem *> plotItemList;
 
 	void setupUi();
 	void setupPens();
-	void drawAxes(QGraphicsScene *scene, const QString &xLabel, const QString &yLabel);
-	void drawLinesOnScenes(const double line[3], const QPen &pen);
-	void clearPlot(QGraphicsScene *scene, QList<QGraphicsItem *> &lineList);
+	void drawAxes(const QPointF &pos, const QString &xLabel,
+		const QString &yLabel, bool drawCircle);
+	void drawLinesOnScenes(const double line[3], const QPen &pen, const QPen &lightPen);
+	void clearPlot();
 };

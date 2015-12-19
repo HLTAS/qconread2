@@ -1,9 +1,16 @@
 #include "playerplotwindow.hpp"
 
-static const double AxisLength = 300;
+static const double AxisLength = 150;
+static const double CircleDistance = 100;
 static const double AxisLabelOffset = 5;
 static const double LineLength = AxisLength / 2;
 static const double LinePenWidth = 4;
+static const double ImagLinePenWidth = 1;
+
+static const QPointF PlanViewPos(-CircleDistance, CircleDistance);
+static const QPointF FrontViewPos(-CircleDistance, -CircleDistance);
+static const QPointF SideViewPos(CircleDistance, -CircleDistance);
+static const QPointF FictitiousViewPos(CircleDistance, CircleDistance);
 
 PlayerPlotWindow::PlayerPlotWindow(QWidget *parent, const LogTableModel *model)
 	: QWidget(parent), logTableModel(model)
@@ -15,20 +22,31 @@ PlayerPlotWindow::PlayerPlotWindow(QWidget *parent, const LogTableModel *model)
 void PlayerPlotWindow::setupPens()
 {
 	yawPen.setBrush(Qt::magenta);
-	yawPen.setWidth(LinePenWidth);
-	yawPen.setCosmetic(true);
-
+	yawImagPen.setColor(QColor(211, 169, 228));
 	velocityPen.setBrush(Qt::blue);
-	velocityPen.setWidth(LinePenWidth);
-	velocityPen.setCosmetic(true);
-
+	velocityImagPen.setColor(QColor(177, 178, 231));
 	damagePen.setBrush(Qt::red);
-	damagePen.setWidth(LinePenWidth);
-	damagePen.setCosmetic(true);
-
+	damageImagPen.setColor(QColor(255, 200, 186));
 	collisionPen.setBrush(Qt::darkYellow);
+	collisionImagPen.setColor(Qt::darkYellow);
+
+	yawPen.setWidth(LinePenWidth);
+	yawImagPen.setWidth(ImagLinePenWidth);
+	velocityPen.setWidth(LinePenWidth);
+	velocityImagPen.setWidth(ImagLinePenWidth);
+	damagePen.setWidth(LinePenWidth);
+	damageImagPen.setWidth(ImagLinePenWidth);
 	collisionPen.setWidth(LinePenWidth);
+	collisionImagPen.setWidth(ImagLinePenWidth);
+
+	yawPen.setCosmetic(true);
+	yawImagPen.setCosmetic(true);
+	velocityPen.setCosmetic(true);
+	velocityImagPen.setCosmetic(true);
+	damagePen.setCosmetic(true);
+	damageImagPen.setCosmetic(true);
 	collisionPen.setCosmetic(true);
+	collisionImagPen.setCosmetic(true);
 }
 
 void PlayerPlotWindow::setupUi()
@@ -39,25 +57,16 @@ void PlayerPlotWindow::setupUi()
 	QGridLayout *lay = new QGridLayout(this);
 	setLayout(lay);
 
-	planView = new PlayerPlotView(this);
-	frontView = new PlayerPlotView(this);
-	sideView = new PlayerPlotView(this);
+	plotView = new PlayerPlotView(this);
+	lay->addWidget(plotView, 0, 0);
 
-	planScene = new QGraphicsScene(this);
-	frontScene = new QGraphicsScene(this);
-	sideScene = new QGraphicsScene(this);
+	plotScene = new QGraphicsScene(this);
+	plotView->setScene(plotScene);
 
-	drawAxes(planScene, "X", "Y");
-	drawAxes(frontScene, "X", "Z");
-	drawAxes(sideScene, "Y", "Z");
-
-	planView->setScene(planScene);
-	frontView->setScene(frontScene);
-	sideView->setScene(sideScene);
-
-	lay->addWidget(frontView, 0, 0);
-	lay->addWidget(sideView, 0, 1);
-	lay->addWidget(planView, 1, 0);
+	drawAxes(PlanViewPos, "X", "Y", true);
+	drawAxes(FrontViewPos, "X", "Z", true);
+	drawAxes(SideViewPos, "Y", "Z", true);
+	drawAxes(FictitiousViewPos, "", "", false);
 }
 
 void PlayerPlotWindow::closeEvent(QCloseEvent *event)
@@ -66,44 +75,87 @@ void PlayerPlotWindow::closeEvent(QCloseEvent *event)
 	event->accept();
 }
 
-void PlayerPlotWindow::drawAxes(QGraphicsScene *scene, const QString &xLabel, const QString &yLabel)
+void PlayerPlotWindow::drawAxes(const QPointF &pos, const QString &xLabel,
+	const QString &yLabel, bool drawCircle)
 {
 	QPen axesPen;
 	axesPen.setCosmetic(true);
 	axesPen.setColor(QColor(Qt::gray));
-	scene->addLine(-AxisLength / 2, 0, AxisLength / 2, 0, axesPen);
-	scene->addLine(0, -AxisLength / 2, 0, AxisLength / 2, axesPen);
-	scene->addEllipse(-AxisLength / 2, -AxisLength / 2, AxisLength, AxisLength, axesPen);
 
-	QGraphicsSimpleTextItem *textItem = scene->addSimpleText(xLabel);
-	textItem->setPos(AxisLength / 2 + AxisLabelOffset, -textItem->boundingRect().height() / 2);
+	QGraphicsLineItem *xAxisItem = plotScene->addLine(
+		-AxisLength / 2, 0, AxisLength / 2, 0, axesPen);
+	QGraphicsLineItem *yAxisItem = plotScene->addLine(
+		0, -AxisLength / 2, 0, AxisLength / 2, axesPen);
 
-	textItem = scene->addSimpleText(yLabel);
-	textItem->setPos(-textItem->boundingRect().width() / 2,
-		-AxisLength / 2 - textItem->boundingRect().height() - AxisLabelOffset);
+	QGraphicsSimpleTextItem *xLabelItem = plotScene->addSimpleText(xLabel);
+	xLabelItem->setPos(AxisLength / 2 + AxisLabelOffset, -xLabelItem->boundingRect().height() / 2);
+
+	QGraphicsSimpleTextItem *yLabelItem = plotScene->addSimpleText(yLabel);
+	yLabelItem->setPos(-yLabelItem->boundingRect().width() / 2,
+		-AxisLength / 2 - yLabelItem->boundingRect().height() - AxisLabelOffset);
+
+	QList<QGraphicsItem *> items({
+		xAxisItem, yAxisItem, xLabelItem, yLabelItem
+	});
+
+	if (drawCircle) {
+		QGraphicsEllipseItem *circleItem = plotScene->addEllipse(
+			-AxisLength / 2, -AxisLength / 2, AxisLength, AxisLength, axesPen);
+		items.append(circleItem);
+	}
+
+	QGraphicsItemGroup *group = plotScene->createItemGroup(items);
+	group->setPos(pos);
 }
 
-void PlayerPlotWindow::clearPlot(QGraphicsScene *scene, QList<QGraphicsItem *> &lineList)
+void PlayerPlotWindow::clearPlot()
 {
-	for (QGraphicsItem *item : lineList) {
-		scene->removeItem(item);
+	for (QGraphicsItem *item : plotItemList) {
+		plotScene->removeItem(item);
 		delete item;
 	}
-	lineList.clear();
+	plotItemList.clear();
 }
 
-void PlayerPlotWindow::drawLinesOnScenes(const double line[3], const QPen &pen)
+void PlayerPlotWindow::drawLinesOnScenes(const double line[3],
+	const QPen &pen, const QPen &lightPen)
 {
-	planLineList.append(planScene->addLine(0, 0, line[0], -line[1], pen));
-	frontLineList.append(frontScene->addLine(0, 0, line[0], -line[2], pen));
-	sideLineList.append(sideScene->addLine(0, 0, line[1], -line[2], pen));
+	const QPointF planPoint(line[0] + PlanViewPos.x(), -line[1] + PlanViewPos.y());
+	const QPointF frontPoint(line[0] + FrontViewPos.x(), -line[2] + FrontViewPos.y());
+	const QPointF sidePoint(line[1] + SideViewPos.x(), -line[2] + SideViewPos.y());
+	const QPointF planFicPoint(FictitiousViewPos.x(), -line[1] + FictitiousViewPos.y());
+	const QPointF sideFicPoint(line[1] + FictitiousViewPos.x(), FictitiousViewPos.y());
+
+	QGraphicsLineItem *planLineItem = plotScene->addLine(QLineF(PlanViewPos, planPoint), pen);
+	QGraphicsLineItem *frontLineItem = plotScene->addLine(QLineF(FrontViewPos, frontPoint), pen);
+	QGraphicsLineItem *sideLineItem = plotScene->addLine(QLineF(SideViewPos, sidePoint), pen);
+
+	QGraphicsLineItem *pfLineItem = plotScene->addLine(QLineF(planPoint, frontPoint), lightPen);
+	QGraphicsLineItem *fsLineItem = plotScene->addLine(QLineF(frontPoint, sidePoint), lightPen);
+
+	QGraphicsLineItem *planImgLineItem = plotScene->addLine(
+		QLineF(planPoint, planFicPoint), lightPen);
+	QGraphicsLineItem *sideImgLineItem = plotScene->addLine(
+		QLineF(sidePoint, sideFicPoint), lightPen);
+	QGraphicsEllipseItem *imgArc = plotScene->addEllipse(
+		FictitiousViewPos.x() - line[1], FictitiousViewPos.y() - line[1],
+		line[1] * 2, line[1] * 2,
+		lightPen
+	);
+
+	plotItemList.append(planLineItem);
+	plotItemList.append(frontLineItem);
+	plotItemList.append(sideLineItem);
+	plotItemList.append(pfLineItem);
+	plotItemList.append(fsLineItem);
+	plotItemList.append(planImgLineItem);
+	plotItemList.append(sideImgLineItem);
+	plotItemList.append(imgArc);
 }
 
 void PlayerPlotWindow::plotFrame(int row)
 {
-	clearPlot(planScene, planLineList);
-	clearPlot(frontScene, frontLineList);
-	clearPlot(sideScene, sideLineList);
+	clearPlot();
 
 	if (row == -1)
 		return;
@@ -115,6 +167,17 @@ void PlayerPlotWindow::plotFrame(int row)
 
 	if (!cmdFrame)
 		return;
+
+	{
+		const double yaw = cmdFrame->viewangles[0] * M_PI / 180;
+		const double line[3] = {
+			std::cos(yaw) * LineLength,
+			std::sin(yaw) * LineLength,
+			0
+		};
+
+		drawLinesOnScenes(line, yawPen, yawImagPen);
+	}
 
 	if (pmState->velocity[0] != 0.0 || pmState->velocity[1] != 0.0 || pmState->velocity[2] != 0.0) {
 		const double speed = std::sqrt(
@@ -130,18 +193,7 @@ void PlayerPlotWindow::plotFrame(int row)
 			pmState->velocity[2] * scale
 		};
 
-		drawLinesOnScenes(line, velocityPen);
-	}
-
-	{
-		const double yaw = cmdFrame->viewangles[0] * M_PI / 180;
-		const double line[3] = {
-			std::cos(yaw) * LineLength,
-			std::sin(yaw) * LineLength,
-			0
-		};
-
-		drawLinesOnScenes(line, yawPen);
+		drawLinesOnScenes(line, velocityPen, velocityImagPen);
 	}
 
 	for (const TASLogger::ReaderDamage &dmg : phyFrame.damageList) {
@@ -161,7 +213,7 @@ void PlayerPlotWindow::plotFrame(int row)
 			dmg.direction[2] * scale
 		};
 
-		drawLinesOnScenes(line, damagePen);
+		drawLinesOnScenes(line, damagePen, damageImagPen);
 	}
 
 	for (const TASLogger::ReaderCollision &col : cmdFrame->collisionList) {
@@ -174,6 +226,6 @@ void PlayerPlotWindow::plotFrame(int row)
 			col.normal[2] * LineLength
 		};
 
-		drawLinesOnScenes(line, collisionPen);
+		drawLinesOnScenes(line, collisionPen, collisionImagPen);
 	}
 }
