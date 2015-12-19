@@ -56,6 +56,9 @@ bool LogTableModel::insertRows(int row, int count, const QModelIndex &parent)
 {
 	beginInsertRows(parent, row, row + count - 1);
 	endInsertRows();
+	mostCommonFrameTimesOutdated = true;
+	if (_hideMostCommonFrameTimes)
+		findMostCommonFrameTimes();
 	return true;
 }
 
@@ -63,6 +66,7 @@ bool LogTableModel::removeRows(int row, int count, const QModelIndex &parent)
 {
 	beginRemoveRows(parent, row, row + count - 1);
 	endRemoveRows();
+	mostCommonFrameTimesOutdated = true;
 	return true;
 }
 
@@ -115,6 +119,45 @@ void LogTableModel::setShowFSUValues(bool enable)
 {
 	_showFSUValues = enable;
 	signalAllDataChanged();
+}
+
+void LogTableModel::setHideMostCommonFrameTimes(bool enable)
+{
+	_hideMostCommonFrameTimes = enable;
+	if (enable && mostCommonFrameTimesOutdated)
+		findMostCommonFrameTimes();
+	signalAllDataChanged();
+}
+
+template<class T>
+static T findMostCommonElement(const QHash<T, size_t> &table)
+{
+	size_t occurrence = 0;
+	T element;
+	for (auto it = table.cbegin(); it != table.cend(); ++it) {
+		if (it.value() > occurrence) {
+			occurrence = it.value();
+			element = it.key();
+		}
+	}
+	return element;
+}
+
+void LogTableModel::findMostCommonFrameTimes()
+{
+	QHash<float, size_t> ftTable;
+	for (const TASLogger::ReaderPhysicsFrame &phy : _tasLog.physicsFrameList)
+		++ftTable[phy.frameTime];
+	_mostCommonFrameTimes = findMostCommonElement(ftTable);
+	ftTable.clear();
+
+	QHash<uint8_t, size_t> msecTable;
+	for (const TASLogger::ReaderPhysicsFrame &phy : _tasLog.physicsFrameList)
+		for (const TASLogger::ReaderCommandFrame &cmd : phy.commandFrameList)
+			++msecTable[cmd.msec];
+	_mostCommonMsec = findMostCommonElement(msecTable);
+
+	mostCommonFrameTimesOutdated = false;
 }
 
 void LogTableModel::getFrameData(int row,
@@ -330,9 +373,11 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 
 	switch (column) {
 	case PhysicsFrameTimeHeader:
+		if (_hideMostCommonFrameTimes && phyFrame.frameTime == _mostCommonFrameTimes)
+			break;
 		return phyFrame.frameTime;
 	case CommandFrameTimeHeader:
-		if (!cmdFrame)
+		if (!cmdFrame || (_hideMostCommonFrameTimes && cmdFrame->msec == _mostCommonMsec))
 			break;
 		return cmdFrame->msec;
 	case FramebulkIdHeader:

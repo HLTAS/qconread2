@@ -123,6 +123,11 @@ public:
 	void setShowFSUValues(bool enable);
 	inline bool showFSUValues() const { return _showFSUValues; }
 
+	void setHideMostCommonFrameTimes(bool enable);
+	inline bool hideMostCommonFrameTimes() const { return _hideMostCommonFrameTimes; }
+	inline float mostCommonFrameTimes() const { return _mostCommonFrameTimes; }
+	inline float mostCommonMsec() const { return _mostCommonMsec; }
+
 	inline TASLogger::TASLog tasLog() const { return _tasLog; }
 
 signals:
@@ -135,12 +140,17 @@ private:
 	bool showPrePlayerMove = false;
 	bool _showAnglemodUnit = false;
 	bool _showFSUValues = false;
+	bool _hideMostCommonFrameTimes = false;
 
+	bool mostCommonFrameTimesOutdated = true;
+	float _mostCommonFrameTimes;
+	int _mostCommonMsec;
 	QString _logFileName;
 
 	void signalAllDataChanged();
 
 	int searchBaseCommandRow(int phyIndex, int row) const;
+	void findMostCommonFrameTimes();
 
 	void populateCommandToPhysicsIndex();
 	QVariant dataForeground(int row, int column) const;

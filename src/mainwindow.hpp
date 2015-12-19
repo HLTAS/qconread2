@@ -21,6 +21,7 @@ private slots:
 	void showAnglemodUnit();
 	void showFSUValues();
 	void showGrid();
+	void hideMostCommonFrameTimes();
 	void showPrePM();
 	void showPostPM();
 	void jumpToStartOfLog();
@@ -37,6 +38,7 @@ private:
 	QAction *anglemodUnitAct;
 	QAction *showFSUValuesAct;
 	QAction *showGridAct;
+	QAction *hideMostCommonFrameTimesAct;
 	QAction *prePlayerMoveAct;
 	QAction *postPlayerMoveAct;
 	QActionGroup *playerMoveGroup;

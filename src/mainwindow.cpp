@@ -35,6 +35,11 @@ void MainWindow::setupMenuBar()
 	showGridAct->setChecked(true);
 	showGridAct->setEnabled(false);
 
+	hideMostCommonFrameTimesAct = viewMenu->addAction("Hide Most &Frequent Frametimes",
+		this, SLOT(hideMostCommonFrameTimes()), QKeySequence("Ctrl+Shift+F"));
+	hideMostCommonFrameTimesAct->setCheckable(true);
+	hideMostCommonFrameTimesAct->setEnabled(false);
+
 	viewMenu->addSeparator();
 
 	prePlayerMoveAct = viewMenu->addAction("Show P&re-PM State",
@@ -65,6 +70,11 @@ void MainWindow::setupMenuBar()
 	showPlayerPlotAct = toolsMenu->addAction("&Player Plot",
 		this, SLOT(showPlayerPlot()), QKeySequence("R"));
 	showPlayerPlotAct->setCheckable(true);
+}
+
+void MainWindow::hideMostCommonFrameTimes()
+{
+	logTableModel->setHideMostCommonFrameTimes(hideMostCommonFrameTimesAct->isChecked());
 }
 
 void MainWindow::showFSUValues()
@@ -216,6 +226,8 @@ void MainWindow::setupUi()
 		showFSUValuesAct, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
 		showGridAct, SLOT(setEnabled(bool)));
+	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
+		hideMostCommonFrameTimesAct, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
 		jumpToStartOfLogAct, SLOT(setEnabled(bool)));
 	connect(logTableModel, SIGNAL(logFileLoaded(bool)),
