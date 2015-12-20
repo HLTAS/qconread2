@@ -240,6 +240,8 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 QVariant LogTableModel::dataBackground(int row, int column) const
 {
 	static const QColor CollisionColor(255, 233, 186);
+	static const QColor CmdAbsentColor(240, 240, 240);
+
 	TASLogger::ReaderPhysicsFrame phyFrame;
 	TASLogger::ReaderCommandFrame *cmdFrame;
 	TASLogger::ReaderPlayerState *pmState;
@@ -250,9 +252,15 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		if (phyFrame.consolePrintList.empty())
 			break;
 		return QColor(Qt::darkGray);
+	case CommandFrameTimeHeader:
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		break;
 	case HorizontalSpeedHeader:
 	case VelocityAngleHeader: {
-		if (!cmdFrame || cmdFrame->collisionList.empty())
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->collisionList.empty())
 			break;
 		bool horizontalCollision = false;
 		for (const TASLogger::ReaderCollision &col : cmdFrame->collisionList) {
@@ -266,7 +274,9 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		return CollisionColor;
 	}
 	case VerticalSpeedHeader: {
-		if (!cmdFrame || cmdFrame->collisionList.empty())
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->collisionList.empty())
 			break;
 		bool verticalCollision = false;
 		for (const TASLogger::ReaderCollision &col : cmdFrame->collisionList) {
@@ -280,67 +290,99 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		return CollisionColor;
 	}
 	case OnGroundHeader:
-		if (!cmdFrame || !pmState->onGround)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!pmState->onGround)
 			break;
 		return QColor(Qt::green);
 	case DuckStateHeader:
-		if (!cmdFrame || pmState->duckState == TASLogger::UNDUCKED)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (pmState->duckState == TASLogger::UNDUCKED)
 			break;
 		return QColor(pmState->duckState == TASLogger::INDUCK ? Qt::gray : Qt::black);
 	case JumpHeader:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_JUMP))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_JUMP))
 			break;
 		return QColor(Qt::cyan);
 	case DuckHeader:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_DUCK))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_DUCK))
 			break;
 		return QColor(Qt::magenta);
 	case ForwardMoveHeader:
-		if (!cmdFrame || cmdFrame->FSU[0] == 0.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->FSU[0] == 0.0)
 			break;
 		return QColor(cmdFrame->FSU[0] > 0 ? Qt::blue : Qt::red);
 	case SideMoveHeader:
-		if (!cmdFrame || cmdFrame->FSU[1] == 0.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->FSU[1] == 0.0)
 			break;
 		return QColor(cmdFrame->FSU[1] > 0 ? Qt::blue : Qt::red);
 	case UpMoveHeader:
-		if (!cmdFrame || cmdFrame->FSU[2] == 0.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->FSU[2] == 0.0)
 			break;
 		return QColor(cmdFrame->FSU[2] > 0 ? Qt::blue : Qt::red);
 	case YawHeader:
-		if (!cmdFrame || cmdFrame->punchangles[0] == 0.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->punchangles[0] == 0.0)
 			break;
 		return QColor(Qt::yellow);
 	case PitchHeader:
-		if (!cmdFrame || cmdFrame->punchangles[1] == 0.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->punchangles[1] == 0.0)
 			break;
 		return QColor(Qt::yellow);
 	case HealthHeader:
+		if (!cmdFrame)
+			return CmdAbsentColor;
 		if (phyFrame.damageList.empty())
 			break;
 		return QColor(Qt::red);
 	case ArmorHeader:
+		if (!cmdFrame)
+			return CmdAbsentColor;
 		if (phyFrame.damageList.empty())
 			break;
 		return QColor(Qt::red);
 	case UseHeader:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_USE))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_USE))
 			break;
 		return QColor(Qt::darkYellow);
 	case AttackHeader:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_ATTACK))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_ATTACK))
 			break;
 		return QColor(Qt::darkYellow);
 	case Attack2Header:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_ATTACK2))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_ATTACK2))
 			break;
 		return QColor(Qt::darkYellow);
 	case ReloadHeader:
-		if (!cmdFrame || !(cmdFrame->buttons & IN_RELOAD))
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!(cmdFrame->buttons & IN_RELOAD))
 			break;
 		return QColor(Qt::darkYellow);
 	case OnLadderHeader:
-		if (!cmdFrame || !pmState->onLadder)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!pmState->onLadder)
 			break;
 		return QColor(125, 58, 19);
 	case ClientStateHeader:
@@ -348,17 +390,31 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 			break;
 		return QColor(Qt::darkCyan);
 	case WaterLevelHeader:
-		if (!cmdFrame || !pmState->waterLevel)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (!pmState->waterLevel)
 			break;
 		return QColor(pmState->waterLevel == 1 ? Qt::blue : Qt::darkBlue);
 	case EntityFrictionHeader:
-		if (!cmdFrame || cmdFrame->entFriction == 1.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->entFriction == 1.0)
 			break;
 		return QColor(Qt::gray);
 	case EntityGravityHeader:
-		if (!cmdFrame || cmdFrame->entGravity == 1.0)
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		if (cmdFrame->entGravity == 1.0)
 			break;
 		return QColor(Qt::gray);
+	case FrameTimeRemainderHeader:
+	case SharedSeedHeader:
+	case PositionZHeader:
+	case PositionXHeader:
+	case PositionYHeader:
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		break;
 	}
 
 	return QVariant();
