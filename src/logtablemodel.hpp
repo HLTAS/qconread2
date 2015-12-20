@@ -128,7 +128,7 @@ public:
 	inline float mostCommonFrameTimes() const { return _mostCommonFrameTimes; }
 	inline float mostCommonMsec() const { return _mostCommonMsec; }
 
-	inline TASLogger::TASLog tasLog() const { return _tasLog; }
+	inline const TASLogger::TASLog &tasLog() const { return _tasLog; }
 
 signals:
 	void logFileLoaded(bool loaded);
