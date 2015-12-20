@@ -15,6 +15,7 @@ public:
 	MainWindow();
 
 private slots:
+	void openNewInstance();
 	void openLogFile();
 	void reloadLogFile();
 	void showLogFileInfo();
@@ -32,6 +33,7 @@ private slots:
 	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 
 private:
+	QAction *newAct;
 	QAction *openAct;
 	QAction *reloadAct;
 	QAction *logFileInfoAct;

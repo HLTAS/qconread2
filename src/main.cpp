@@ -7,8 +7,8 @@ int main(int argc, char **argv)
 	app.setOrganizationName("HLTAS");
 	app.setApplicationName("qconread2");
 
-	MainWindow mainWindow;
-	mainWindow.show();
+	MainWindow *mainWindow = new MainWindow;
+	mainWindow->show();
 
 	return app.exec();
 }

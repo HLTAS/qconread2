@@ -1,6 +1,7 @@
 #include "mainwindow.hpp"
 
 MainWindow::MainWindow()
+	: QMainWindow()
 {
 	setupMenuBar();
 	setupStatusBar();
@@ -10,6 +11,8 @@ MainWindow::MainWindow()
 void MainWindow::setupMenuBar()
 {
 	QMenu *fileMenu = menuBar()->addMenu("&File");
+	newAct = fileMenu->addAction("&New", this, SLOT(openNewInstance()), QKeySequence::New);
+
 	openAct = fileMenu->addAction("&Open...", this, SLOT(openLogFile()), QKeySequence::Open);
 
 	reloadAct = fileMenu->addAction("&Reload", this, SLOT(reloadLogFile()), QKeySequence::Refresh);
@@ -70,6 +73,13 @@ void MainWindow::setupMenuBar()
 	showPlayerPlotAct = toolsMenu->addAction("&Player Plot",
 		this, SLOT(showPlayerPlot()), QKeySequence("R"));
 	showPlayerPlotAct->setCheckable(true);
+}
+
+void MainWindow::openNewInstance()
+{
+	// No parent needed, since it has Qt::WA_DeleteOnClose
+	MainWindow *newWindow = new MainWindow;
+	newWindow->show();
 }
 
 void MainWindow::hideMostCommonFrameTimes()
@@ -203,6 +213,7 @@ void MainWindow::setupUi()
 {
 	resize(800, 600);
 	setWindowTitle("qconread2");
+	setAttribute(Qt::WA_DeleteOnClose);
 
 	logTableView = new LogTableView(this);
 	logTableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
