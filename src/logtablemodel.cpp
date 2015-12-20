@@ -256,6 +256,10 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		if (!cmdFrame)
 			return CmdAbsentColor;
 		break;
+	case FramebulkIdHeader:
+		if (!cmdFrame)
+			return CmdAbsentColor;
+		break;
 	case HorizontalSpeedHeader:
 	case VelocityAngleHeader: {
 		if (!cmdFrame)
