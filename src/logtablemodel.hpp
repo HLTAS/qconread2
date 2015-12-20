@@ -3,6 +3,13 @@
 #include <QtWidgets>
 #include "taslogger/reader.hpp"
 
+enum LogFileError
+{
+	LFErrorNone,
+	LFErrorCannotOpen,
+	LFErrorInvalidLogFile
+};
+
 const int IN_ATTACK = 1 << 0;
 const int IN_JUMP = 1 << 1;
 const int IN_DUCK = 1 << 2;
@@ -100,7 +107,7 @@ public:
 	inline int buildNumber() const { return _tasLog.buildNumber; }
 	inline QString gameMod() const { return QString::fromStdString(_tasLog.gameMod); }
 
-	void openLogFile(const QString &fileName);
+	LogFileError openLogFile(const QString &fileName);
 	bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 	bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 

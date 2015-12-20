@@ -23,24 +23,20 @@ void LogTableModel::populateCommandToPhysicsIndex()
 	}
 }
 
-void LogTableModel::openLogFile(const QString &fileName)
+LogFileError LogTableModel::openLogFile(const QString &fileName)
 {
 	_logFileName = fileName;
 
 	const QByteArray nameBytes = fileName.toLatin1();
 	FILE *file = fopen(nameBytes.data(), "rb");
-	if (!file) {
-		// TODO: error reporting
-		return;
-	}
+	if (!file)
+		return LFErrorCannotOpen;
 
 	const rapidjson::ParseResult res = TASLogger::ParseFile(file, _tasLog);
 	fclose(file);
 
-	if (!res) {
-		// TODO: error reporting
-		return;
-	}
+	if (!res)
+		return LFErrorInvalidLogFile;
 
 	removeRows(0, commandToPhysicsIndex.size());
 
@@ -50,6 +46,8 @@ void LogTableModel::openLogFile(const QString &fileName)
 	insertRows(0, commandToPhysicsIndex.size());
 
 	emit logFileLoaded(true);
+
+	return LFErrorNone;
 }
 
 bool LogTableModel::insertRows(int row, int count, const QModelIndex &parent)

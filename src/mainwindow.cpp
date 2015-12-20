@@ -281,5 +281,9 @@ void MainWindow::openLogFile()
 	if (fileName.isEmpty())
 		return;
 
-	logTableModel->openLogFile(fileName);
+	const LogFileError res = logTableModel->openLogFile(fileName);
+	if (res == LFErrorInvalidLogFile)
+		QMessageBox::warning(this, "qconread2", "The format of the log file is invalid.");
+	else if (res == LFErrorCannotOpen)
+		QMessageBox::warning(this, "qconread2", "Unable to open the request file.");
 }
