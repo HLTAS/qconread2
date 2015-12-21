@@ -1,4 +1,5 @@
 #include "mainwindow.hpp"
+#include "settings.hpp"
 
 MainWindow::MainWindow()
 	: QMainWindow()
@@ -277,13 +278,37 @@ void MainWindow::reloadLogFile()
 
 void MainWindow::openLogFile()
 {
-	const QString fileName = QFileDialog::getOpenFileName(this, "Open Log File");
+	QSettings settings;
+	const QString lastDir = settings.value(LastOpenDirectoryKey).toString();
+	const QString fileName = QFileDialog::getOpenFileName(this, "Open Log File", lastDir);
 	if (fileName.isEmpty())
 		return;
+
+	settings.setValue(LastOpenDirectoryKey, QFileInfo(fileName).canonicalPath());
 
 	const LogFileError res = logTableModel->openLogFile(fileName);
 	if (res == LFErrorInvalidLogFile)
 		QMessageBox::warning(this, "qconread2", "The format of the log file is invalid.");
 	else if (res == LFErrorCannotOpen)
 		QMessageBox::warning(this, "qconread2", "Unable to open the request file.");
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	QSettings settings;
+	settings.setValue(MainWindowGeometryKey, saveGeometry());
+	settings.setValue(LogTableHorizontalHeaderStateKey,
+		logTableView->horizontalHeader()->saveState());
+
+	event->accept();
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+	QSettings settings;
+	restoreGeometry(settings.value(MainWindowGeometryKey).toByteArray());
+	logTableView->horizontalHeader()->restoreState(
+		settings.value(LogTableHorizontalHeaderStateKey).toByteArray());
+
+	event->accept();
 }

@@ -7,6 +7,8 @@ int main(int argc, char **argv)
 	app.setOrganizationName("HLTAS");
 	app.setApplicationName("qconread2");
 
+	QSettings::setDefaultFormat(QSettings::IniFormat);
+
 	MainWindow *mainWindow = new MainWindow;
 	mainWindow->show();
 

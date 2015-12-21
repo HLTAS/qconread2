@@ -1,5 +1,6 @@
 #include <map>
 #include "frameinspectorwindow.hpp"
+#include "settings.hpp"
 
 static const int ListWidgetFixedWidth = 60;
 static const float M_U = 360.0 / 65536;
@@ -611,11 +612,23 @@ void FrameInspectorWindow::colListCurrentRowChanged(int index)
 void FrameInspectorWindow::closeEvent(QCloseEvent *event)
 {
 	emit aboutToClose();
+	event->ignore();
+	hide();
+}
+
+void FrameInspectorWindow::hideEvent(QHideEvent *event)
+{
+	QSettings settings;
+	settings.setValue(FrameInspectorGeometryKey, saveGeometry());
+
 	event->accept();
 }
 
 void FrameInspectorWindow::showEvent(QShowEvent *event)
 {
+	QSettings settings;
+	restoreGeometry(settings.value(FrameInspectorGeometryKey).toByteArray());
+
 	inspectFrame();
 	event->accept();
 }

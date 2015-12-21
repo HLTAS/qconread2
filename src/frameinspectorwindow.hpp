@@ -21,6 +21,7 @@ signals:
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
+	void hideEvent(QHideEvent *event) override;
 	void showEvent(QShowEvent *event) override;
 
 private slots:

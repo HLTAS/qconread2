@@ -32,6 +32,10 @@ private slots:
 
 	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 
+protected:
+	void closeEvent(QCloseEvent *event) override;
+	void showEvent(QShowEvent *event) override;
+
 private:
 	QAction *newAct;
 	QAction *openAct;

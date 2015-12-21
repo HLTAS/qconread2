@@ -1,4 +1,5 @@
 #include "playerplotwindow.hpp"
+#include "settings.hpp"
 
 static const double AxisLength = 150;
 static const double CircleDistance = 100;
@@ -72,8 +73,26 @@ void PlayerPlotWindow::setupUi()
 void PlayerPlotWindow::closeEvent(QCloseEvent *event)
 {
 	emit aboutToClose();
+	event->ignore();
+	hide();
+}
+
+void PlayerPlotWindow::hideEvent(QHideEvent *event)
+{
+	QSettings settings;
+	settings.setValue(PlayerPlotGeometryKey, saveGeometry());
+
 	event->accept();
 }
+
+void PlayerPlotWindow::showEvent(QShowEvent *event)
+{
+	QSettings settings;
+	restoreGeometry(settings.value(PlayerPlotGeometryKey).toByteArray());
+
+	event->accept();
+}
+
 
 void PlayerPlotWindow::drawAxes(const QPointF &pos, const QString &xLabel,
 	const QString &yLabel, bool drawCircle)
