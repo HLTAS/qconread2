@@ -27,10 +27,16 @@ void MainWindow::setupMenuBar()
 	reloadAct = fileMenu->addAction("&Reload", this, SLOT(reloadLogFile()), QKeySequence::Refresh);
 	reloadAct->setEnabled(false);
 
+	closeAct = fileMenu->addAction("&Close", this, SLOT(close()), QKeySequence::Close);
+
 	fileMenu->addSeparator();
 
 	logFileInfoAct = fileMenu->addAction("Log File &Info...", this, SLOT(showLogFileInfo()));
 	logFileInfoAct->setEnabled(false);
+
+	fileMenu->addSeparator();
+
+	quitAct = fileMenu->addAction("Close &All Files", qApp, SLOT(quit()), QKeySequence::Quit);
 
 	QMenu *viewMenu = menuBar()->addMenu("&View");
 	anglemodUnitAct = viewMenu->addAction("Viewangles in Anglemod Unit",

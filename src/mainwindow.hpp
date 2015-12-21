@@ -43,7 +43,10 @@ private:
 	QAction *openAct;
 	QMenu *openRecentMenu;
 	QAction *reloadAct;
+	QAction *closeAct;
 	QAction *logFileInfoAct;
+	QAction *quitAct;
+
 	QAction *anglemodUnitAct;
 	QAction *showFSUValuesAct;
 	QAction *showGridAct;
@@ -51,8 +54,10 @@ private:
 	QAction *prePlayerMoveAct;
 	QAction *postPlayerMoveAct;
 	QActionGroup *playerMoveGroup;
+
 	QAction *jumpToStartOfLogAct;
 	QAction *jumpToEndOfLogAct;
+
 	QAction *showInspectorAct;
 	QAction *showPlayerPlotAct;
 
