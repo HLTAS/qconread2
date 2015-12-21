@@ -1,5 +1,4 @@
 #include "mainwindow.hpp"
-#include "settings.hpp"
 
 MainWindow::MainWindow()
 	: QMainWindow()
@@ -15,6 +14,15 @@ void MainWindow::setupMenuBar()
 	newAct = fileMenu->addAction("&New", this, SLOT(openNewInstance()), QKeySequence::New);
 
 	openAct = fileMenu->addAction("&Open...", this, SLOT(openLogFile()), QKeySequence::Open);
+
+	openRecentMenu = fileMenu->addMenu("Open Recent");
+	for (int i = 0; i < MaxRecentFiles; i++) {
+		recentFileActionList[i] = new QAction(openRecentMenu);
+		recentFileActionList[i]->setVisible(false);
+		connect(recentFileActionList[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
+		openRecentMenu->addAction(recentFileActionList[i]);
+	}
+	populateRecentFiles();
 
 	reloadAct = fileMenu->addAction("&Reload", this, SLOT(reloadLogFile()), QKeySequence::Refresh);
 	reloadAct->setEnabled(false);
@@ -74,6 +82,34 @@ void MainWindow::setupMenuBar()
 	showPlayerPlotAct = toolsMenu->addAction("&Player Plot",
 		this, SLOT(showPlayerPlot()), QKeySequence("R"));
 	showPlayerPlotAct->setCheckable(true);
+}
+
+void MainWindow::populateRecentFiles()
+{
+	QSettings settings;
+	QStringList recentFileList = settings.value(RecentFilesKey).toStringList();
+	updateRecentFiles(recentFileList);
+}
+
+void MainWindow::updateRecentFiles(const QStringList &nameList)
+{
+	int i;
+	for (i = 0; i < nameList.size(); i++) {
+		recentFileActionList[i]->setText(nameList.at(i));
+		recentFileActionList[i]->setData(nameList.at(i));
+		recentFileActionList[i]->setVisible(true);
+	}
+	for (; i < MaxRecentFiles; i++) {
+		recentFileActionList[i]->setData(QString());
+		recentFileActionList[i]->setVisible(false);
+	}
+}
+
+void MainWindow::openRecentFile()
+{
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (action)
+		loadLogFile(action->data().toString());
 }
 
 void MainWindow::openNewInstance()
@@ -276,6 +312,30 @@ void MainWindow::reloadLogFile()
 	logTableModel->openLogFile(logTableModel->logFileName());
 }
 
+bool MainWindow::loadLogFile(const QString &fileName)
+{
+	const LogFileError res = logTableModel->openLogFile(fileName);
+	if (res == LFErrorInvalidLogFile) {
+		QMessageBox::warning(this, "qconread2", "The format of the log file is invalid.");
+		return false;
+	} else if (res == LFErrorCannotOpen) {
+		QMessageBox::warning(this, "qconread2", "Unable to open the request file.");
+		return false;
+	}
+
+	QSettings settings;
+	QStringList recentFileList = settings.value(RecentFilesKey).toStringList();
+	recentFileList.removeAll(fileName);
+	recentFileList.insert(0, fileName);
+	while (recentFileList.size() > MaxRecentFiles)
+		recentFileList.removeLast();
+
+	settings.setValue(RecentFilesKey, recentFileList);
+	updateRecentFiles(recentFileList);
+
+	return true;
+}
+
 void MainWindow::openLogFile()
 {
 	QSettings settings;
@@ -286,11 +346,7 @@ void MainWindow::openLogFile()
 
 	settings.setValue(LastOpenDirectoryKey, QFileInfo(fileName).canonicalPath());
 
-	const LogFileError res = logTableModel->openLogFile(fileName);
-	if (res == LFErrorInvalidLogFile)
-		QMessageBox::warning(this, "qconread2", "The format of the log file is invalid.");
-	else if (res == LFErrorCannotOpen)
-		QMessageBox::warning(this, "qconread2", "Unable to open the request file.");
+	loadLogFile(fileName);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

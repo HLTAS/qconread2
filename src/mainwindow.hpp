@@ -6,6 +6,7 @@
 #include "fileinfodialog.hpp"
 #include "frameinspectorwindow.hpp"
 #include "playerplotwindow.hpp"
+#include "settings.hpp"
 
 class MainWindow : public QMainWindow
 {
@@ -17,6 +18,7 @@ public:
 private slots:
 	void openNewInstance();
 	void openLogFile();
+	void openRecentFile();
 	void reloadLogFile();
 	void showLogFileInfo();
 	void showAnglemodUnit();
@@ -39,6 +41,7 @@ protected:
 private:
 	QAction *newAct;
 	QAction *openAct;
+	QMenu *openRecentMenu;
 	QAction *reloadAct;
 	QAction *logFileInfoAct;
 	QAction *anglemodUnitAct;
@@ -53,6 +56,8 @@ private:
 	QAction *showInspectorAct;
 	QAction *showPlayerPlotAct;
 
+	QAction *recentFileActionList[MaxRecentFiles];
+
 	FileInfoDialog *fileInfoDialog = nullptr;
 	FrameInspectorWindow *frameInspectorWindow = nullptr;
 	PlayerPlotWindow *playerPlotWindow = nullptr;
@@ -63,6 +68,10 @@ private:
 	void setupMenuBar();
 	void setupStatusBar();
 	void setupUi();
+	void populateRecentFiles();
+	void updateRecentFiles(const QStringList &nameList);
+
+	bool loadLogFile(const QString &fileName);
 
 	void inspectCurrentRow();
 	void plotCurrentRow();
