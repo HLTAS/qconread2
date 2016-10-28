@@ -1,0 +1,14 @@
+before_install:
+  - add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+  - apt-get update -qq
+  - apt-get install -qq qt5-qmake qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev rapidjson-dev
+
+compiler:
+  - gcc
+  - clang
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j
