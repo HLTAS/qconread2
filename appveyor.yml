@@ -1,0 +1,16 @@
+platform: x64
+
+install:
+  - curl -O -L 'https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz'
+  - 7z x v1.0.2.tar.gz
+  - set QTDIR=C:\Qt\5.7\msvc2015_64
+  - set PATH=%PATH%;%QTDIR%\bin
+
+before_build:
+  - mkdir build
+  - cd build
+  - cmake -DRapidJSON_ROOT=..\rapidjson-1.0.2 ..
+
+build:
+  - parallel: true
+  - project: qconread2.sln
