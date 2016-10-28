@@ -16,7 +16,7 @@ before_build:
   - set PATH=%PATH%;%QTDIR%\bin
   - mkdir build
   - cd build
-  - cmake -G %CMAKE_MSVC% -DRapidJSON_ROOT=..\rapidjson-1.0.2 ..
+  - cmake -G "Visual Studio 14 2015 Win64" -DRapidJSON_ROOT=..\rapidjson-1.0.2 ..
 
 build:
   parallel: true
