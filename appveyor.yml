@@ -1,11 +1,17 @@
 platform: x64
 
+configuration:
+  - Debug
+  - Release
+
 install:
   - git submodule update --init --recursive
   - curl -O -L 'https://github.com/miloyip/rapidjson/archive/v1.0.2.zip'
   - 7z x v1.0.2.zip
-  - set QTDIR=C:\Qt\5.7\msvc2015_64
-  - set PATH=%PATH%;%QTDIR%\bin
+
+environment:
+  QTDIR: C:\Qt\5.7\msvc2015_64
+  PATH: %PATH%;%QTDIR%\bin
 
 before_build:
   - mkdir build
@@ -15,3 +21,6 @@ before_build:
 build:
   parallel: true
   project: build\qconread2.sln
+
+artefacts:
+  - path: build\$(configuration)\*
