@@ -16,5 +16,5 @@ compiler:
 script:
   - mkdir build
   - cd build
-  - cmake -DRapidJSON_ROOT=rapidjson-1.1.0 ..
+  - cmake -DRapidJSON_ROOT=../rapidjson-1.1.0 ..
   - make -j
