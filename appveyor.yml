@@ -2,7 +2,7 @@ platform: x64
 
 install:
   - git submodule update --init --recursive
-  - curl -O -L 'https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz'
+  - curl -O -L 'https://github.com/miloyip/rapidjson/archive/v1.0.2.zip'
   - 7z x v1.0.2.tar.gz
   - set QTDIR=C:\Qt\5.7\msvc2015_64
   - set PATH=%PATH%;%QTDIR%\bin
