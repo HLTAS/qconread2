@@ -14,4 +14,4 @@ before_build:
 
 build:
   parallel: true
-  project: qconread2.sln
+  project: build\qconread2.sln
