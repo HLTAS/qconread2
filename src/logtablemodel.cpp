@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cmath>
 #include <limits>
+#include <unordered_map>
 #include "logtablemodel.hpp"
 
 static const float M_U = 360.0 / 65536;
@@ -128,14 +129,14 @@ void LogTableModel::setHideMostCommonFrameTimes(bool enable)
 }
 
 template<class T>
-static T findMostCommonElement(const QHash<T, size_t> &table)
+static T findMostCommonElement(const std::unordered_map<T, size_t> &table)
 {
 	size_t occurrence = 0;
 	T element;
-	for (auto it = table.cbegin(); it != table.cend(); ++it) {
-		if (it.value() > occurrence) {
-			occurrence = it.value();
-			element = it.key();
+	for (const auto pair : table) {
+		if (pair.second > occurrence) {
+			occurrence = pair.second;
+			element = pair.first;
 		}
 	}
 	return element;
@@ -143,13 +144,13 @@ static T findMostCommonElement(const QHash<T, size_t> &table)
 
 void LogTableModel::findMostCommonFrameTimes()
 {
-	QHash<float, size_t> ftTable;
+	std::unordered_map<float, size_t> ftTable;
 	for (const TASLogger::ReaderPhysicsFrame &phy : _tasLog.physicsFrameList)
 		++ftTable[phy.frameTime];
 	_mostCommonFrameTimes = findMostCommonElement(ftTable);
 	ftTable.clear();
 
-	QHash<uint8_t, size_t> msecTable;
+	std::unordered_map<uint8_t, size_t> msecTable;
 	for (const TASLogger::ReaderPhysicsFrame &phy : _tasLog.physicsFrameList)
 		for (const TASLogger::ReaderCommandFrame &cmd : phy.commandFrameList)
 			++msecTable[cmd.msec];
