@@ -12,5 +12,5 @@ before_build:
   - cmake -DRapidJSON_ROOT=..\rapidjson-1.0.2 ..
 
 build:
-  - parallel: true
-  - project: qconread2.sln
+  parallel: true
+  project: qconread2.sln
