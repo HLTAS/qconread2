@@ -15,6 +15,7 @@ endif()
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
 set(QT_LIBRARIES Qt5::Core Qt5::Widgets)
 
+set(RapidJSON_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/rapidjson" CACHE PATH "RapidJSON root")
 add_subdirectory(taslogger)
 
 include_directories(

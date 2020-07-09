@@ -11,12 +11,11 @@ compiler:
   - clang
 
 before_install:
-  - curl -L 'https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz' | tar -zx
   - sudo apt-get update -qq
   - sudo apt-get install -qq qtbase5-dev
 
 script:
   - mkdir build
   - cd build
-  - cmake -DRapidJSON_ROOT=../rapidjson-1.0.2 ..
+  - cmake ..
   - make -j
