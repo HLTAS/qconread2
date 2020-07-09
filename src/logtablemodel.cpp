@@ -132,7 +132,7 @@ template<class T>
 static T findMostCommonElement(const std::unordered_map<T, size_t> &table)
 {
 	size_t occurrence = 0;
-	T element;
+	T element{};
 	for (const auto pair : table) {
 		if (pair.second > occurrence) {
 			occurrence = pair.second;
