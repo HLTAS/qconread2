@@ -222,6 +222,8 @@ QVariant LogTableModel::dataForeground(int row, int column) const
 		return QColor(Qt::white);
 	case SharedSeedHeader:
 		return QColor(Qt::darkGray);
+	case NonSharedRNGParameterHeader:
+		return QColor(Qt::darkGray);
 	case ClientStateHeader:
 		if (phyFrame.paused)
 			return QColor(Qt::white);
@@ -412,6 +414,7 @@ QVariant LogTableModel::dataBackground(int row, int column) const
 		return QColor(Qt::gray);
 	case FrameTimeRemainderHeader:
 	case SharedSeedHeader:
+	case NonSharedRNGParameterHeader:
 	case PositionZHeader:
 	case PositionXHeader:
 	case PositionYHeader:
@@ -522,6 +525,8 @@ QVariant LogTableModel::dataDisplay(int row, int column) const
 		if (!cmdFrame)
 			break;
 		return cmdFrame->sharedSeed;
+	case NonSharedRNGParameterHeader:
+		return phyFrame.rng.idum;
 	case PositionZHeader:
 		if (!cmdFrame)
 			break;
